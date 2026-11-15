@@ -86,6 +86,98 @@
         .choice-btn:active:not(:disabled) {
             transform: scale(0.985);
         }
+
+        /* ==================== ダークモード用スタイル ==================== */
+        html.dark body {
+            background-color: #0F172A;
+            background-image: radial-gradient(#1E293B 0.75px, transparent 0.75px);
+            color: #F1F5F9;
+        }
+        html.dark header {
+            background-color: rgba(15, 23, 42, 0.92) !important;
+            border-color: #1E293B !important;
+        }
+        html.dark .bg-white,
+        html.dark .bg-white\/90 {
+            background-color: #1E293B !important;
+        }
+        html.dark .bg-stone-50,
+        html.dark .bg-stone-50\/80,
+        html.dark .bg-stone-50\/50,
+        html.dark .bg-stone-100,
+        html.dark .bg-stone-100\/90 {
+            background-color: #0F172A !important;
+        }
+        html.dark .bg-indigo-50,
+        html.dark .bg-indigo-50\/70 {
+            background-color: rgba(49, 46, 129, 0.35) !important;
+        }
+        html.dark .bg-emerald-50,
+        html.dark .bg-emerald-50\/70,
+        html.dark .bg-emerald-50\/60 {
+            background-color: rgba(6, 78, 59, 0.35) !important;
+        }
+        html.dark .bg-amber-50,
+        html.dark .bg-amber-50\/60 {
+            background-color: rgba(120, 53, 15, 0.35) !important;
+        }
+        html.dark .bg-rose-50,
+        html.dark .bg-rose-50\/70 {
+            background-color: rgba(136, 19, 55, 0.35) !important;
+        }
+        html.dark .border-stone-200,
+        html.dark .border-stone-200\/90,
+        html.dark .border-stone-200\/80,
+        html.dark .border-stone-100,
+        html.dark .border-stone-300,
+        html.dark .border-indigo-100,
+        html.dark .border-indigo-200,
+        html.dark .border-indigo-200\/80 {
+            border-color: #334155 !important;
+        }
+        html.dark .divide-stone-100 > :not([hidden]) ~ :not([hidden]) {
+            border-color: #334155 !important;
+        }
+        html.dark .text-slate-900,
+        html.dark .text-slate-800,
+        html.dark .text-indigo-950,
+        html.dark .text-emerald-950,
+        html.dark .text-amber-950 {
+            color: #F8FAFC !important;
+        }
+        html.dark .text-slate-700,
+        html.dark .text-slate-600 {
+            color: #CBD5E1 !important;
+        }
+        html.dark .text-slate-500,
+        html.dark .text-slate-400 {
+            color: #94A3B8 !important;
+        }
+        html.dark .text-indigo-700,
+        html.dark .text-indigo-800,
+        html.dark .text-indigo-900 {
+            color: #A5B4FC !important;
+        }
+        html.dark .text-emerald-800,
+        html.dark .text-emerald-700 {
+            color: #6EE7B7 !important;
+        }
+        html.dark .text-amber-800,
+        html.dark .text-amber-900 {
+            color: #FCD34D !important;
+        }
+        html.dark input,
+        html.dark textarea {
+            background-color: #0F172A !important;
+            color: #F8FAFC !important;
+            border-color: #334155 !important;
+        }
+        html.dark ::-webkit-scrollbar-track {
+            background: #0F172A;
+        }
+        html.dark ::-webkit-scrollbar-thumb {
+            background: #334155;
+        }
     </style>
 </head>
 <body class="min-h-screen flex flex-col font-sans antialiased selection:bg-indigo-200 selection:text-indigo-900">
@@ -102,7 +194,7 @@
                     <h1 class="font-serif font-extrabold text-base sm:text-lg text-slate-900 tracking-tight leading-none">
                         CJV<span class="text-indigo-700">315</span>
                     </h1>
-                    <p class="text-[11px] text-slate-500 font-medium mt-0.5">古典単語315 番号・収録語準拠</p>
+                    <p class="text-[11px] text-slate-500 font-medium mt-0.5">Classical Japanese Vocabulary</p>
                 </div>
             </button>
 
@@ -118,6 +210,9 @@
                         <span>単語一覧</span>
                     </button>
                 </nav>
+                <button id="btn-theme-toggle" onclick="toggleDarkMode()" title="ダークモード切り替え" class="p-2 rounded-xl bg-stone-100 hover:bg-indigo-50 text-slate-700 border border-stone-200 transition flex items-center justify-center">
+                    <i id="icon-theme" data-lucide="moon" class="w-4 h-4 text-indigo-700"></i>
+                </button>
                 <button onclick="openBackupModal()" title="データの引き継ぎ・バックアップ" class="px-2.5 py-1.5 rounded-xl bg-stone-100 hover:bg-indigo-50 text-slate-700 hover:text-indigo-900 border border-stone-200 text-xs font-bold transition flex items-center gap-1">
                     <i data-lucide="save" class="w-3.5 h-3.5 text-indigo-700"></i>
                     <span class="hidden sm:inline">データ引き継ぎ</span>
@@ -162,7 +257,7 @@
                 <!-- プログレスバー -->
                 <div class="space-y-1.5">
                     <div class="flex justify-between items-end text-sm">
-                        <span class="font-bold text-slate-600">マスター達成率</span>
+                        <span class="font-bold text-slate-600">達成率</span>
                         <span class="font-black text-xl text-indigo-950">
                             <span id="stat-percent">0.0</span><span class="text-xs font-bold text-slate-500 ml-0.5">%</span>
                             <span class="text-xs font-medium text-slate-400 ml-1">(<span id="stat-mastered-sub">0</span> / 315語)</span>
@@ -176,7 +271,8 @@
 
                 <!-- スペシャル演習モード -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-5 pt-5 border-t border-stone-100">
-                    <button id="btn-mode-unlearned" onclick="startSpecialQuiz('unlearned')" class="group flex items-center justify-between p-3.5 rounded-xl bg-gradient-to-r from-indigo-900 to-indigo-800 hover:from-indigo-800 hover:to-indigo-700 text-white shadow-sm transition text-left">
+                    <!-- 未習得の単語から集中出題 -->
+                    <div class="p-3.5 rounded-xl bg-gradient-to-r from-indigo-900 to-indigo-800 text-white shadow-sm flex flex-col justify-between gap-2.5">
                         <div class="flex items-center gap-3">
                             <div class="w-10 h-10 rounded-lg bg-white/15 flex items-center justify-center shrink-0">
                                 <i data-lucide="flame" class="w-5 h-5 text-amber-300"></i>
@@ -185,13 +281,20 @@
                                 <div class="font-bold text-sm sm:text-base flex items-center gap-1.5">
                                     未習得の単語から集中出題
                                 </div>
-                                <div class="text-xs text-indigo-200 mt-0.5" id="desc-unlearned">未習得の単語からランダムに10問出題</div>
+                                <div class="text-xs text-indigo-200 mt-0.5" id="desc-unlearned">問題数を選んで未習得単語を集中演習</div>
                             </div>
                         </div>
-                        <i data-lucide="chevron-right" class="w-5 h-5 text-indigo-300 group-hover:translate-x-0.5 transition"></i>
-                    </button>
+                        <div class="grid grid-cols-5 gap-1.5">
+                            <button onclick="startSpecialQuiz('unlearned', 10)" class="unlearned-count-btn py-1.5 px-1 rounded-lg bg-white/15 hover:bg-white text-white hover:text-indigo-950 border border-white/20 font-black text-xs transition">10題</button>
+                            <button onclick="startSpecialQuiz('unlearned', 20)" class="unlearned-count-btn py-1.5 px-1 rounded-lg bg-white/15 hover:bg-white text-white hover:text-indigo-950 border border-white/20 font-black text-xs transition">20題</button>
+                            <button onclick="startSpecialQuiz('unlearned', 50)" class="unlearned-count-btn py-1.5 px-1 rounded-lg bg-white/15 hover:bg-white text-white hover:text-indigo-950 border border-white/20 font-black text-xs transition">50題</button>
+                            <button onclick="startSpecialQuiz('unlearned', 100)" class="unlearned-count-btn py-1.5 px-1 rounded-lg bg-white/15 hover:bg-white text-white hover:text-indigo-950 border border-white/20 font-black text-xs transition">100題</button>
+                            <button onclick="startSpecialQuiz('unlearned', 'all')" class="unlearned-count-btn py-1.5 px-1 rounded-lg bg-amber-400 hover:bg-amber-300 text-indigo-950 font-black text-xs transition">全部</button>
+                        </div>
+                    </div>
 
-                    <button id="btn-mode-mastered" onclick="startSpecialQuiz('mastered')" class="group flex items-center justify-between p-3.5 rounded-xl bg-white hover:bg-emerald-50/60 border-2 border-emerald-600/30 hover:border-emerald-600 text-slate-800 transition text-left">
+                    <!-- 習得済み単語の記憶チェック -->
+                    <div class="p-3.5 rounded-xl bg-white border-2 border-emerald-600/30 text-slate-800 flex flex-col justify-between gap-2.5">
                         <div class="flex items-center gap-3">
                             <div class="w-10 h-10 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
                                 <i data-lucide="shield-check" class="w-5 h-5"></i>
@@ -200,16 +303,22 @@
                                 <div class="font-bold text-sm sm:text-base text-emerald-950">
                                     習得済み単語の記憶チェック
                                 </div>
-                                <div class="text-xs text-slate-500 mt-0.5" id="desc-mastered">習得済みの単語から10問復習（誤答で未習得へ降格）</div>
+                                <div class="text-xs text-slate-500 mt-0.5" id="desc-mastered">問題数を選んで復習（誤答で未習得へ降格）</div>
                             </div>
                         </div>
-                        <i data-lucide="chevron-right" class="w-5 h-5 text-emerald-600 group-hover:translate-x-0.5 transition"></i>
-                    </button>
+                        <div class="grid grid-cols-5 gap-1.5">
+                            <button onclick="startSpecialQuiz('mastered', 10)" class="mastered-count-btn py-1.5 px-1 rounded-lg bg-emerald-50 hover:bg-emerald-600 text-emerald-900 hover:text-white border border-emerald-200 font-black text-xs transition">10題</button>
+                            <button onclick="startSpecialQuiz('mastered', 20)" class="mastered-count-btn py-1.5 px-1 rounded-lg bg-emerald-50 hover:bg-emerald-600 text-emerald-900 hover:text-white border border-emerald-200 font-black text-xs transition">20題</button>
+                            <button onclick="startSpecialQuiz('mastered', 50)" class="mastered-count-btn py-1.5 px-1 rounded-lg bg-emerald-50 hover:bg-emerald-600 text-emerald-900 hover:text-white border border-emerald-200 font-black text-xs transition">50題</button>
+                            <button onclick="startSpecialQuiz('mastered', 100)" class="mastered-count-btn py-1.5 px-1 rounded-lg bg-emerald-50 hover:bg-emerald-600 text-emerald-900 hover:text-white border border-emerald-200 font-black text-xs transition">100題</button>
+                            <button onclick="startSpecialQuiz('mastered', 'all')" class="mastered-count-btn py-1.5 px-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs transition">全部</button>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- 追加機能: 全315語ランダム出題 & チェック済み単語出題 -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
-                    <!-- 全315語ランダム出題 (10/25/50/100題) -->
+                    <!-- 全315語ランダム出題 (10/20/50/100/315題) -->
                     <div class="p-3.5 rounded-xl bg-indigo-50/70 border border-indigo-200/80 flex flex-col justify-between gap-2.5">
                         <div class="flex items-center gap-2.5">
                             <div class="w-9 h-9 rounded-lg bg-indigo-900 text-amber-300 flex items-center justify-center shrink-0">
@@ -220,16 +329,17 @@
                                 <div class="text-[11px] text-slate-500">問題数を選んで総合実力テスト</div>
                             </div>
                         </div>
-                        <div class="grid grid-cols-4 gap-1.5">
-                            <button onclick="startAllRandomQuiz(10)" class="py-1.5 px-2 rounded-lg bg-white hover:bg-indigo-900 text-indigo-950 hover:text-white border border-indigo-200 font-black text-xs transition shadow-2xs">10題</button>
-                            <button onclick="startAllRandomQuiz(25)" class="py-1.5 px-2 rounded-lg bg-white hover:bg-indigo-900 text-indigo-950 hover:text-white border border-indigo-200 font-black text-xs transition shadow-2xs">25題</button>
-                            <button onclick="startAllRandomQuiz(50)" class="py-1.5 px-2 rounded-lg bg-white hover:bg-indigo-900 text-indigo-950 hover:text-white border border-indigo-200 font-black text-xs transition shadow-2xs">50題</button>
-                            <button onclick="startAllRandomQuiz(100)" class="py-1.5 px-2 rounded-lg bg-white hover:bg-indigo-900 text-indigo-950 hover:text-white border border-indigo-200 font-black text-xs transition shadow-2xs">100題</button>
+                        <div class="grid grid-cols-5 gap-1.5">
+                            <button onclick="startAllRandomQuiz(10)" class="py-1.5 px-1 rounded-lg bg-white hover:bg-indigo-900 text-indigo-950 hover:text-white border border-indigo-200 font-black text-xs transition shadow-2xs">10題</button>
+                            <button onclick="startAllRandomQuiz(20)" class="py-1.5 px-1 rounded-lg bg-white hover:bg-indigo-900 text-indigo-950 hover:text-white border border-indigo-200 font-black text-xs transition shadow-2xs">20題</button>
+                            <button onclick="startAllRandomQuiz(50)" class="py-1.5 px-1 rounded-lg bg-white hover:bg-indigo-900 text-indigo-950 hover:text-white border border-indigo-200 font-black text-xs transition shadow-2xs">50題</button>
+                            <button onclick="startAllRandomQuiz(100)" class="py-1.5 px-1 rounded-lg bg-white hover:bg-indigo-900 text-indigo-950 hover:text-white border border-indigo-200 font-black text-xs transition shadow-2xs">100題</button>
+                            <button onclick="startAllRandomQuiz(315)" class="py-1.5 px-1 rounded-lg bg-indigo-900 hover:bg-indigo-800 text-amber-300 font-black text-xs transition shadow-2xs">315題</button>
                         </div>
                     </div>
 
                     <!-- チェック済み単語から出題 -->
-                    <button id="btn-mode-checked" onclick="startSpecialQuiz('checked')" class="group flex items-center justify-between p-3.5 rounded-xl bg-amber-50/60 hover:bg-amber-50 border-2 border-amber-400/50 hover:border-amber-500 text-slate-800 transition text-left">
+                    <div class="p-3.5 rounded-xl bg-amber-50/60 border-2 border-amber-400/50 text-slate-800 flex flex-col justify-between gap-2.5">
                         <div class="flex items-center gap-3">
                             <div class="w-10 h-10 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center shrink-0">
                                 <i data-lucide="star" class="w-5 h-5 fill-amber-400 text-amber-500"></i>
@@ -242,8 +352,14 @@
                                 <div class="text-xs text-slate-600 mt-0.5" id="desc-checked">★チェックをつけた単語から出題します</div>
                             </div>
                         </div>
-                        <i data-lucide="chevron-right" class="w-5 h-5 text-amber-600 group-hover:translate-x-0.5 transition"></i>
-                    </button>
+                        <div class="grid grid-cols-5 gap-1.5">
+                            <button onclick="startSpecialQuiz('checked', 10)" class="checked-count-btn py-1.5 px-1 rounded-lg bg-white hover:bg-amber-500 text-amber-950 hover:text-white border border-amber-300 font-black text-xs transition shadow-2xs">10題</button>
+                            <button onclick="startSpecialQuiz('checked', 20)" class="checked-count-btn py-1.5 px-1 rounded-lg bg-white hover:bg-amber-500 text-amber-950 hover:text-white border border-amber-300 font-black text-xs transition shadow-2xs">20題</button>
+                            <button onclick="startSpecialQuiz('checked', 50)" class="checked-count-btn py-1.5 px-1 rounded-lg bg-white hover:bg-amber-500 text-amber-950 hover:text-white border border-amber-300 font-black text-xs transition shadow-2xs">50題</button>
+                            <button onclick="startSpecialQuiz('checked', 100)" class="checked-count-btn py-1.5 px-1 rounded-lg bg-white hover:bg-amber-500 text-amber-950 hover:text-white border border-amber-300 font-black text-xs transition shadow-2xs">100題</button>
+                            <button onclick="startSpecialQuiz('checked', 'all')" class="checked-count-btn py-1.5 px-1 rounded-lg bg-amber-400 hover:bg-amber-500 text-indigo-950 font-black text-xs transition shadow-2xs">全部</button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -392,7 +508,7 @@
                 <div class="flex flex-col sm:flex-row gap-3 pt-2">
                     <button onclick="switchTab('stages')" class="flex-1 py-3.5 px-4 rounded-xl border-2 border-stone-200 hover:bg-stone-50 font-bold text-slate-700 transition flex items-center justify-center gap-2">
                         <i data-lucide="grid" class="w-4 h-4"></i>
-                        <span>ステージ一覧へ戻る</span>
+                        <span>ステージへ戻る</span>
                     </button>
                     <button id="btn-retry-quiz" onclick="retryCurrentQuiz()" class="flex-1 py-3.5 px-4 rounded-xl bg-indigo-950 hover:bg-indigo-900 text-white font-bold shadow-sm transition flex items-center justify-center gap-2">
                         <i data-lucide="refresh-cw" class="w-4 h-4"></i>
@@ -977,6 +1093,7 @@
         let quizState = {
             mode: 'stage',
             stageNum: 1,
+            questionLimit: 10,
             title: '',
             questions: [],
             currentIndex: 0,
@@ -997,111 +1114,123 @@
          * 3. 初期化・データ永続化処理
          * ============================================================================
          */
+        const THEME_STORAGE_KEY = 'kobun_315_theme_v1';
+
+        function applyDarkMode(isDark) {
+            const htmlEl = document.documentElement;
+            const iconEl = document.getElementById('icon-theme');
+            if (isDark) {
+                htmlEl.classList.add('dark');
+                if (iconEl) iconEl.setAttribute('data-lucide', 'sun');
+            } else {
+                htmlEl.classList.remove('dark');
+                if (iconEl) iconEl.setAttribute('data-lucide', 'moon');
+            }
+            if (window.lucide) lucide.createIcons();
+        }
+
+        function initDarkMode() {
+            let isDark = false;
+            try {
+                const saved = localStorage.getItem(THEME_STORAGE_KEY);
+                if (saved === 'dark') isDark = true;
+            } catch (e) {}
+            applyDarkMode(isDark);
+        }
+
+        function toggleDarkMode() {
+            const isDark = !document.documentElement.classList.contains('dark');
+            applyDarkMode(isDark);
+            try {
+                localStorage.setItem(THEME_STORAGE_KEY, isDark ? 'dark' : 'light');
+            } catch (e) {}
+        }
+
         function initApp() {
+            initDarkMode();
             KOBUN_WORDS.forEach(w => {
                 userProgress[w.id] = { streak: 0, mastered: false };
             });
 
             loadProgress();
             loadCheckedWords();
-
-            window.onCloudLoaded = () => {
-                saveProgress(true);
-                saveCheckedWords(true);
-                updateDashboardStats();
-                renderStageGrid();
-                updateCheckedBadges();
-                if (!document.getElementById('view-dict').classList.contains('hidden')) {
-                    renderDictionary();
-                }
-            };
-
-            updateDashboardStats();
+            renderDashboard();
             renderStageGrid();
-            updateCheckedBadges();
             renderDictionary();
             lucide.createIcons();
-
-            window.addEventListener('beforeunload', (e) => {
-                e.preventDefault();
-                e.returnValue = '';
-            });
         }
+
+        window.onCloudLoaded = function() {
+            saveProgressLocalOnly();
+            saveCheckedLocalOnly();
+            renderDashboard();
+            renderStageGrid();
+            renderDictionary();
+        };
 
         function loadProgress() {
-            let loaded = null;
             try {
                 const raw = localStorage.getItem(STORAGE_KEY);
-                if (raw) loaded = JSON.parse(raw);
-            } catch (e) {}
-
-            if (!loaded && window.name && window.name.startsWith('CJV315_STATE:')) {
-                try {
-                    const parsed = JSON.parse(window.name.slice('CJV315_STATE:'.length));
-                    if (parsed && parsed.progress) loaded = parsed.progress;
-                } catch (e) {}
-            }
-
-            if (loaded && typeof loaded === 'object') {
-                KOBUN_WORDS.forEach(w => {
-                    if (loaded[w.id]) {
-                        userProgress[w.id] = {
-                            streak: Number(loaded[w.id].streak) || 0,
-                            mastered: Boolean(loaded[w.id].mastered)
-                        };
-                    }
-                });
+                if (raw) {
+                    const parsed = JSON.parse(raw);
+                    Object.keys(parsed).forEach(id => {
+                        if (userProgress[id]) {
+                            userProgress[id] = {
+                                streak: Number(parsed[id].streak) || 0,
+                                mastered: Boolean(parsed[id].mastered)
+                            };
+                        }
+                    });
+                }
+            } catch (e) {
+                console.warn('LocalStorage unavailable:', e);
             }
         }
 
-        function saveProgress(skipCloud = false) {
+        function saveProgressLocalOnly() {
             try {
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(userProgress));
             } catch (e) {}
-            saveToWindowName();
-            if (!skipCloud && window.cloudSync && typeof window.cloudSync.save === 'function') {
+        }
+
+        function saveProgress() {
+            saveProgressLocalOnly();
+            if (window.cloudSync) {
                 window.cloudSync.save(userProgress, checkedWords);
             }
         }
 
         function loadCheckedWords() {
-            let loaded = null;
             try {
                 const raw = localStorage.getItem(CHECKED_STORAGE_KEY);
-                if (raw) loaded = JSON.parse(raw);
+                if (raw) {
+                    const parsed = JSON.parse(raw);
+                    Object.keys(parsed).forEach(id => {
+                        if (parsed[id]) checkedWords[id] = true;
+                    });
+                }
             } catch (e) {}
-
-            if (!loaded && window.name && window.name.startsWith('CJV315_STATE:')) {
-                try {
-                    const parsed = JSON.parse(window.name.slice('CJV315_STATE:'.length));
-                    if (parsed && parsed.checked) loaded = parsed.checked;
-                } catch (e) {}
-            }
-
-            if (loaded && typeof loaded === 'object') {
-                Object.keys(loaded).forEach(k => {
-                    if (loaded[k]) checkedWords[k] = true;
-                });
-            }
         }
 
-        function saveCheckedWords(skipCloud = false) {
+        function saveCheckedLocalOnly() {
             try {
                 localStorage.setItem(CHECKED_STORAGE_KEY, JSON.stringify(checkedWords));
             } catch (e) {}
-            saveToWindowName();
-            if (!skipCloud && window.cloudSync && typeof window.cloudSync.save === 'function') {
+        }
+
+        function saveCheckedWords() {
+            saveCheckedLocalOnly();
+            if (window.cloudSync) {
                 window.cloudSync.save(userProgress, checkedWords);
             }
         }
 
-        function saveToWindowName() {
-            try {
-                window.name = 'CJV315_STATE:' + JSON.stringify({
-                    progress: userProgress,
-                    checked: checkedWords
-                });
-            } catch (e) {}
+        function isWordChecked(wordId) {
+            return Boolean(checkedWords[wordId]);
+        }
+
+        function getCheckedCount() {
+            return KOBUN_WORDS.filter(w => Boolean(checkedWords[w.id])).length;
         }
 
         function toggleWordCheck(wordId, event) {
@@ -1112,73 +1241,156 @@
                 checkedWords[wordId] = true;
             }
             saveCheckedWords();
-            updateCheckedBadges();
+            renderDashboard();
+            renderDictionary();
+            updateQuizCheckButton();
         }
 
-        function updateCheckedBadges() {
-            const count = Object.keys(checkedWords).filter(id => checkedWords[id]).length;
-            const badgeEl = document.getElementById('badge-checked-count');
-            const filterEl = document.getElementById('filter-checked-count');
-            if (badgeEl) badgeEl.textContent = `${count}語`;
-            if (filterEl) filterEl.textContent = count;
+        function toggleCurrentQuizWordCheck() {
+            const wordObj = quizState.questions[quizState.currentIndex];
+            if (!wordObj) return;
+            toggleWordCheck(wordObj.id);
+        }
+
+        function updateQuizCheckButton() {
+            const btn = document.getElementById('btn-quiz-check');
+            if (!btn) return;
+            const wordObj = quizState.questions[quizState.currentIndex];
+            if (!wordObj) return;
+            const checked = isWordChecked(wordObj.id);
+            if (checked) {
+                btn.className = 'absolute top-3.5 right-3.5 p-2 rounded-xl border border-amber-300 bg-amber-50 text-amber-500 transition focus:outline-none shadow-2xs';
+                btn.innerHTML = '<i data-lucide="star" class="w-5 h-5 fill-amber-400 text-amber-500"></i>';
+            } else {
+                btn.className = 'absolute top-3.5 right-3.5 p-2 rounded-xl border border-stone-200 bg-stone-50/80 hover:bg-amber-50 text-slate-400 hover:text-amber-500 transition focus:outline-none';
+                btn.innerHTML = '<i data-lucide="star" class="w-5 h-5"></i>';
+            }
+            lucide.createIcons();
         }
 
         function clearAllChecked() {
             Object.keys(checkedWords).forEach(k => delete checkedWords[k]);
             saveCheckedWords();
-            updateCheckedBadges();
+            renderDashboard();
             renderDictionary();
-            showToast('すべての★チェックを解除しました');
+            showToast('すべてのチェックを解除しました');
+        }
+
+        function openBackupModal() {
+            const modal = document.getElementById('backup-modal');
+            const box = document.getElementById('backup-code-box');
+            const payload = { p: userProgress, c: checkedWords };
+            try {
+                const jsonStr = JSON.stringify(payload);
+                const encoded = btoa(unescape(encodeURIComponent(jsonStr)));
+                box.value = encoded;
+            } catch (e) {
+                box.value = JSON.stringify(payload);
+            }
+            modal.classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function closeBackupModal() {
+            document.getElementById('backup-modal').classList.add('hidden');
+        }
+
+        function copyBackupCode() {
+            const box = document.getElementById('backup-code-box');
+            box.select();
+            document.execCommand('copy');
+            showToast('保存コードをクリップボードにコピーしました');
+        }
+
+        function restoreFromBackupCode() {
+            const box = document.getElementById('backup-code-box');
+            const raw = box.value.trim();
+            if (!raw) {
+                showToast('保存コードを貼り付けてください');
+                return;
+            }
+            try {
+                let decodedStr = raw;
+                if (!raw.startsWith('{')) {
+                    decodedStr = decodeURIComponent(escape(atob(raw)));
+                }
+                const parsed = JSON.parse(decodedStr);
+                if (parsed.p) {
+                    KOBUN_WORDS.forEach(w => {
+                        if (parsed.p[w.id]) {
+                            userProgress[w.id] = {
+                                streak: Number(parsed.p[w.id].streak) || 0,
+                                mastered: Boolean(parsed.p[w.id].mastered)
+                            };
+                        }
+                    });
+                }
+                if (parsed.c) {
+                    Object.keys(checkedWords).forEach(k => delete checkedWords[k]);
+                    Object.keys(parsed.c).forEach(id => {
+                        if (parsed.c[id]) checkedWords[id] = true;
+                    });
+                }
+                saveProgress();
+                saveCheckedWords();
+                renderDashboard();
+                renderStageGrid();
+                renderDictionary();
+                closeBackupModal();
+                showToast('学習データを復元しました！');
+            } catch (e) {
+                showToast('コードの形式が正しくありません');
+            }
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-msg').textContent = msg;
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.add('hidden'), 2600);
         }
 
         /**
          * ============================================================================
-         * 4. 画面切り替え・ダッシュボード更新
+         * 4. 画面切り替え＆ダッシュボード描画
          * ============================================================================
          */
         function switchTab(tabName) {
             stopTimer();
-            ['view-stages', 'view-quiz', 'view-result', 'view-dict'].forEach(id => {
-                document.getElementById(id).classList.add('hidden');
+            ['stages', 'quiz', 'result', 'dict'].forEach(v => {
+                document.getElementById(`view-${v}`).classList.add('hidden');
             });
 
             const navStages = document.getElementById('nav-stages');
             const navDict = document.getElementById('nav-dict');
-            navStages.className = 'px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition flex items-center gap-1.5 text-slate-600 hover:text-slate-900';
-            navDict.className = 'px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition flex items-center gap-1.5 text-slate-600 hover:text-slate-900';
 
-            if (tabName === 'stages') {
-                document.getElementById('view-stages').classList.remove('hidden');
-                navStages.className = 'px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition flex items-center gap-1.5 bg-white text-indigo-950 shadow-sm';
-                updateDashboardStats();
-                renderStageGrid();
-                updateCheckedBadges();
-            } else if (tabName === 'dict') {
+            if (tabName === 'dict') {
                 document.getElementById('view-dict').classList.remove('hidden');
                 navDict.className = 'px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition flex items-center gap-1.5 bg-white text-indigo-950 shadow-sm';
-                updateCheckedBadges();
+                navStages.className = 'px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition flex items-center gap-1.5 text-slate-600 hover:text-slate-900';
                 renderDictionary();
+            } else {
+                document.getElementById('view-stages').classList.remove('hidden');
+                navStages.className = 'px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition flex items-center gap-1.5 bg-white text-indigo-950 shadow-sm';
+                navDict.className = 'px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition flex items-center gap-1.5 text-slate-600 hover:text-slate-900';
+                renderDashboard();
+                renderStageGrid();
             }
-            lucide.createIcons();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        function updateDashboardStats() {
+        function renderDashboard() {
+            const total = KOBUN_WORDS.length;
             let mastered = 0;
             let learning = 0;
-            let unlearned = 0;
 
             KOBUN_WORDS.forEach(w => {
-                const st = userProgress[w.id];
-                if (st && st.mastered) {
-                    mastered++;
-                } else if (st && st.streak === 1) {
-                    learning++;
-                } else {
-                    unlearned++;
-                }
+                const p = userProgress[w.id];
+                if (p.mastered) mastered++;
+                else if (p.streak === 1) learning++;
             });
 
-            const total = KOBUN_WORDS.length;
+            const unlearned = total - mastered - learning;
             const percent = ((mastered / total) * 100).toFixed(1);
 
             document.getElementById('stat-mastered').textContent = mastered;
@@ -1189,11 +1401,64 @@
 
             document.getElementById('bar-mastered').style.width = `${(mastered / total) * 100}%`;
             document.getElementById('bar-learning').style.width = `${(learning / total) * 100}%`;
+
+            const unlearnedPoolCount = total - mastered;
+            const unlearnedBtns = document.querySelectorAll('.unlearned-count-btn');
+            const descUnlearned = document.getElementById('desc-unlearned');
+            if (unlearnedPoolCount === 0) {
+                unlearnedBtns.forEach(b => {
+                    b.disabled = true;
+                    b.classList.add('opacity-40', 'cursor-not-allowed');
+                });
+                descUnlearned.textContent = '全315語を習得済みです！素晴らしい！';
+            } else {
+                unlearnedBtns.forEach(b => {
+                    b.disabled = false;
+                    b.classList.remove('opacity-40', 'cursor-not-allowed');
+                });
+                descUnlearned.textContent = `未習得・習得中の ${unlearnedPoolCount} 語から問題数を選択`;
+            }
+
+            const masteredBtns = document.querySelectorAll('.mastered-count-btn');
+            const descMastered = document.getElementById('desc-mastered');
+            if (mastered === 0) {
+                masteredBtns.forEach(b => {
+                    b.disabled = true;
+                    b.classList.add('opacity-40', 'cursor-not-allowed');
+                });
+                descMastered.textContent = '習得済みの単語が増えると挑戦できます';
+            } else {
+                masteredBtns.forEach(b => {
+                    b.disabled = false;
+                    b.classList.remove('opacity-40', 'cursor-not-allowed');
+                });
+                descMastered.textContent = `習得済みの ${mastered} 語から問題数を選択`;
+            }
+
+            const checkedCount = getCheckedCount();
+            const badgeChecked = document.getElementById('badge-checked-count');
+            const filterCheckedCount = document.getElementById('filter-checked-count');
+            const checkedBtns = document.querySelectorAll('.checked-count-btn');
+            const descChecked = document.getElementById('desc-checked');
+            if (badgeChecked) badgeChecked.textContent = `${checkedCount}語`;
+            if (filterCheckedCount) filterCheckedCount.textContent = checkedCount;
+            if (descChecked) {
+                if (checkedCount === 0) {
+                    checkedBtns.forEach(b => {
+                        b.disabled = true;
+                        b.classList.add('opacity-40', 'cursor-not-allowed');
+                    });
+                    descChecked.textContent = '単語一覧や問題画面の★を押すとここから出題できます';
+                } else {
+                    checkedBtns.forEach(b => {
+                        b.disabled = false;
+                        b.classList.remove('opacity-40', 'cursor-not-allowed');
+                    });
+                    descChecked.textContent = `★チェック済みの ${checkedCount} 語から問題数を選択`;
+                }
+            }
         }
 
-        /**
-         * 21ステージのグリッドカードを描画
-         */
         function renderStageGrid() {
             const grid = document.getElementById('stage-grid');
             grid.innerHTML = '';
@@ -1201,47 +1466,61 @@
             for (let s = 1; s <= TOTAL_STAGES; s++) {
                 const startIdx = (s - 1) * STAGE_SIZE;
                 const stageWords = KOBUN_WORDS.slice(startIdx, startIdx + STAGE_SIZE);
-                const wordCount = stageWords.length;
-                const masteredInStage = stageWords.filter(w => userProgress[w.id].mastered).length;
-                const isComplete = masteredInStage === wordCount;
-                const startNo = stageWords[0].id;
-                const endNo = stageWords[stageWords.length - 1].id;
+                const stageTotal = stageWords.length;
+                const firstNo = stageWords[0].id;
+                const lastNo = stageWords[stageWords.length - 1].id;
+                const masteredCount = stageWords.filter(w => userProgress[w.id].mastered).length;
+                const learningCount = stageWords.filter(w => !userProgress[w.id].mastered && userProgress[w.id].streak === 1).length;
+                const isComplete = masteredCount === stageTotal;
 
                 const card = document.createElement('button');
                 card.onclick = () => startStageQuiz(s);
-                card.className = `group relative p-3.5 rounded-2xl border text-left transition shadow-2xs hover:shadow-md flex flex-col justify-between ${
+                card.className = `group relative p-4 rounded-2xl border text-left transition shadow-2xs hover:shadow-md flex flex-col justify-between ${
                     isComplete
                         ? 'bg-emerald-50/70 border-emerald-300 hover:border-emerald-500'
                         : 'bg-white border-stone-200 hover:border-indigo-400'
                 }`;
 
                 card.innerHTML = `
-                    <div class="flex items-center justify-between w-full mb-1.5">
-                        <span class="text-xs font-black ${isComplete ? 'text-emerald-800' : 'text-indigo-950'}">
-                            STAGE ${s}
-                        </span>
-                        ${isComplete
-                            ? '<span class="px-1.5 py-0.5 rounded-md bg-emerald-500 text-white text-[10px] font-black">COMPLETE</span>'
-                            : `<span class="text-[11px] font-bold text-slate-400">No.${startNo}〜${endNo}</span>`
+                    <div class="flex items-start justify-between w-full mb-2">
+                        <div>
+                            <span class="text-[10px] font-bold tracking-wider uppercase ${isComplete ? 'text-emerald-700' : 'text-indigo-600'}">
+                                No.${firstNo}〜${lastNo}
+                            </span>
+                            <h4 class="font-serif font-extrabold text-base sm:text-lg text-slate-900 leading-tight">
+                                ステージ ${s}
+                            </h4>
+                        </div>
+                        ${
+                            isComplete
+                                ? `<span class="w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-2xs">
+                                     <i data-lucide="check" class="w-3.5 h-3.5 stroke-[3]"></i>
+                                   </span>`
+                                : `<span class="text-xs font-black text-slate-400 group-hover:text-indigo-600 transition">
+                                     ${masteredCount}/${stageTotal}
+                                   </span>`
                         }
                     </div>
-                    <div class="mt-2">
-                        <div class="flex justify-between items-center text-xs mb-1">
-                            <span class="text-slate-500 font-medium">習得</span>
-                            <span class="font-black ${isComplete ? 'text-emerald-700' : 'text-slate-800'}">${masteredInStage} / ${wordCount}</span>
+
+                    <div class="w-full space-y-1.5 mt-1">
+                        <div class="w-full h-2 bg-stone-100 rounded-full overflow-hidden flex">
+                            <div class="h-full bg-emerald-500 transition-all" style="width: ${(masteredCount / stageTotal) * 100}%"></div>
+                            <div class="h-full bg-amber-400 transition-all" style="width: ${(learningCount / stageTotal) * 100}%"></div>
                         </div>
-                        <div class="w-full h-1.5 bg-stone-100 rounded-full overflow-hidden">
-                            <div class="h-full ${isComplete ? 'bg-emerald-500' : 'bg-indigo-600'} transition-all duration-300" style="width: ${(masteredInStage / wordCount) * 100}%"></div>
+                        <div class="flex justify-between items-center text-[11px] font-medium text-slate-500">
+                            <span>${isComplete ? '完全習得済み！' : `習得 ${masteredCount}語`}</span>
+                            <span class="text-indigo-700 font-bold group-hover:translate-x-0.5 transition">挑戦 →</span>
                         </div>
                     </div>
                 `;
                 grid.appendChild(card);
             }
+            lucide.createIcons();
         }
 
         /**
          * ============================================================================
-         * 5. クイズ出題・タイマー・正誤判定ロジック
+         * 5. クイズ開始・出題・タイマー制御ロジック
          * ============================================================================
          */
         function shuffleArray(arr) {
@@ -1253,17 +1532,16 @@
             return copy;
         }
 
-        /**
-         * 指定ステージのクイズを開始
-         */
         function startStageQuiz(stageNum) {
             const startIdx = (stageNum - 1) * STAGE_SIZE;
             const stageWords = KOBUN_WORDS.slice(startIdx, startIdx + STAGE_SIZE);
+            const firstNo = stageWords[0].id;
+            const lastNo = stageWords[stageWords.length - 1].id;
 
             quizState = {
                 mode: 'stage',
                 stageNum: stageNum,
-                title: `ステージ ${stageNum}`,
+                title: `ステージ ${stageNum}（No.${firstNo}〜${lastNo}）`,
                 questions: shuffleArray(stageWords),
                 currentIndex: 0,
                 correctCount: 0,
@@ -1275,43 +1553,39 @@
                 timeLeft: TIME_LIMIT_SEC,
                 currentChoices: []
             };
-            beginQuizSession();
+            launchQuizView();
         }
 
-        function startSpecialQuiz(mode) {
+        function startSpecialQuiz(mode, limit = 10) {
             let pool = [];
-            let title = '';
+            let baseTitle = '';
+
             if (mode === 'unlearned') {
                 pool = KOBUN_WORDS.filter(w => !userProgress[w.id].mastered);
-                if (pool.length === 0) {
-                    showToast('すべての単語を習得済みです！素晴らしい！');
-                    return;
-                }
-                pool = shuffleArray(pool).slice(0, 10);
-                title = '未習得集中モード';
+                baseTitle = '未習得単語の集中演習';
             } else if (mode === 'mastered') {
                 pool = KOBUN_WORDS.filter(w => userProgress[w.id].mastered);
-                if (pool.length === 0) {
-                    showToast('まだ習得済みの単語がありません');
-                    return;
-                }
-                pool = shuffleArray(pool).slice(0, 10);
-                title = '習得済み記憶チェック';
+                baseTitle = '習得済み単語の記憶チェック';
             } else if (mode === 'checked') {
-                pool = KOBUN_WORDS.filter(w => checkedWords[w.id]);
-                if (pool.length === 0) {
-                    showToast('★チェックをつけた単語がありません');
-                    return;
-                }
-                pool = shuffleArray(pool);
-                title = `チェック済み単語 (${pool.length}題)`;
+                pool = KOBUN_WORDS.filter(w => isWordChecked(w.id));
+                baseTitle = '★チェック済み単語演習';
             }
+
+            if (pool.length === 0) {
+                showToast(mode === 'checked' ? 'チェック済みの単語がありません' : '対象の単語がありません');
+                return;
+            }
+
+            const shuffled = shuffleArray(pool);
+            const selected = limit === 'all' ? shuffled : shuffled.slice(0, limit);
+            const countLabel = limit === 'all' ? `全部・${selected.length}題` : `${selected.length}題`;
 
             quizState = {
                 mode: mode,
-                stageNum: null,
-                title: title,
-                questions: pool,
+                stageNum: 0,
+                questionLimit: limit,
+                title: `${baseTitle}（${countLabel}）`,
+                questions: selected,
                 currentIndex: 0,
                 correctCount: 0,
                 promotedCount: 0,
@@ -1322,17 +1596,17 @@
                 timeLeft: TIME_LIMIT_SEC,
                 currentChoices: []
             };
-            beginQuizSession();
+            launchQuizView();
         }
 
         function startAllRandomQuiz(count) {
-            const pool = shuffleArray(KOBUN_WORDS).slice(0, count);
+            const selected = shuffleArray(KOBUN_WORDS).slice(0, count);
             quizState = {
-                mode: 'random',
-                randomCount: count,
-                stageNum: null,
-                title: `全315語ランダム (${count}題)`,
-                questions: pool,
+                mode: 'all_random',
+                stageNum: count,
+                questionLimit: count,
+                title: `全315語ランダム実力テスト（${count}題）`,
+                questions: selected,
                 currentIndex: 0,
                 correctCount: 0,
                 promotedCount: 0,
@@ -1343,22 +1617,22 @@
                 timeLeft: TIME_LIMIT_SEC,
                 currentChoices: []
             };
-            beginQuizSession();
+            launchQuizView();
         }
 
         function retryCurrentQuiz() {
-            if (quizState.mode === 'stage' && quizState.stageNum) {
+            if (quizState.mode === 'stage') {
                 startStageQuiz(quizState.stageNum);
-            } else if (quizState.mode === 'random' && quizState.randomCount) {
-                startAllRandomQuiz(quizState.randomCount);
+            } else if (quizState.mode === 'all_random') {
+                startAllRandomQuiz(quizState.stageNum);
             } else {
-                startSpecialQuiz(quizState.mode);
+                startSpecialQuiz(quizState.mode, quizState.questionLimit);
             }
         }
 
-        function beginQuizSession() {
-            ['view-stages', 'view-result', 'view-dict'].forEach(id => {
-                document.getElementById(id).classList.add('hidden');
+        function launchQuizView() {
+            ['stages', 'result', 'dict'].forEach(v => {
+                document.getElementById(`view-${v}`).classList.add('hidden');
             });
             document.getElementById('view-quiz').classList.remove('hidden');
             document.getElementById('quiz-mode-label').textContent = quizState.title;
@@ -1366,128 +1640,117 @@
             renderCurrentQuestion();
         }
 
-        function quitQuiz() {
-            stopTimer();
-            switchTab('stages');
-        }
-
         function renderCurrentQuestion() {
             stopTimer();
             quizState.answered = false;
             quizState.timeLeft = TIME_LIMIT_SEC;
 
-            const qWord = quizState.questions[quizState.currentIndex];
-            const prog = userProgress[qWord.id];
+            const qIdx = quizState.currentIndex;
+            const wordObj = quizState.questions[qIdx];
+            const prog = userProgress[wordObj.id];
 
-            document.getElementById('quiz-q-num').textContent = quizState.currentIndex + 1;
-            document.getElementById('word-reading').textContent = `No.${qWord.id}　${qWord.reading}`;
-            document.getElementById('word-display').textContent = qWord.word;
+            document.getElementById('quiz-q-num').textContent = qIdx + 1;
+            document.getElementById('word-reading').textContent = `No.${wordObj.id}（${wordObj.chapter}） ／ ${wordObj.reading}`;
+            document.getElementById('word-display').textContent = wordObj.word;
+            updateQuizCheckButton();
 
-            // チェックボタン状態更新
-            updateQuizCheckButton(qWord.id);
-
-            // 習得ステータスバッジ更新
             const badge = document.getElementById('word-status-badge');
             if (prog.mastered) {
                 badge.className = 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800';
-                badge.textContent = '★ 習得済み（誤答で未習得に降格）';
+                badge.innerHTML = `<i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i> 習得済み（誤答すると未習得へ降格）`;
             } else if (prog.streak === 1) {
                 badge.className = 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800';
-                badge.textContent = '習得中（連続正解: 1/2・あと1回で習得！）';
+                badge.innerHTML = `<i data-lucide="sparkles" class="w-3.5 h-3.5"></i> 習得中（連続正解: 1/2 ー 次で習得！）`;
             } else {
                 badge.className = 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-600';
-                badge.textContent = '未習得（連続正解: 0/2）';
+                badge.innerHTML = `未習得（連続正解: 0/2）`;
             }
 
-            // 8択の選択肢を作成（正解1つ + ダミー7つ）
-            const distractors = shuffleArray(KOBUN_WORDS.filter(w => w.id !== qWord.id)).slice(0, 7);
-            const eightChoices = shuffleArray([qWord, ...distractors]);
-            quizState.currentChoices = eightChoices;
+            const feedbackPanel = document.getElementById('feedback-panel');
+            feedbackPanel.classList.add('hidden');
+            const qCard = document.getElementById('question-card');
+            qCard.classList.remove('animate-shake');
 
-            const grid = document.getElementById('choices-grid');
-            grid.innerHTML = '';
+            const distractors = shuffleArray(
+                KOBUN_WORDS.filter(w => w.id !== wordObj.id && w.meaning !== wordObj.meaning)
+            ).slice(0, 7);
 
-            eightChoices.forEach((choiceWord, idx) => {
-                const num = idx + 1;
-                const btn = document.createElement('button');
-                btn.type = 'button';
-                btn.dataset.choiceIndex = idx;
-                btn.onclick = () => handleAnswer(idx);
-                btn.className = 'choice-btn w-full text-left p-3.5 rounded-xl bg-white hover:bg-indigo-50/70 border-2 border-stone-200 hover:border-indigo-400 flex items-start gap-3 shadow-2xs';
-                btn.innerHTML = `
-                    <span class="w-6 h-6 rounded-lg bg-stone-100 text-slate-700 font-black text-xs flex items-center justify-center shrink-0 mt-0.5">${num}</span>
-                    <span class="text-xs sm:text-sm font-bold text-slate-800 leading-snug">${choiceWord.meaning}</span>
-                `;
-                grid.appendChild(btn);
+            const eightChoices = shuffleArray([
+                { text: wordObj.meaning, isCorrect: true, isUnknown: false },
+                ...distractors.map(d => ({ text: d.meaning, isCorrect: false, isUnknown: false }))
+            ]);
+
+            eightChoices.push({
+                text: 'わからない（スキップして答えを見る）',
+                isCorrect: false,
+                isUnknown: true
             });
 
-            // 9番「わからない」ボタンを追加
-            const unknownBtn = document.createElement('button');
-            unknownBtn.type = 'button';
-            unknownBtn.dataset.choiceIndex = 8;
-            unknownBtn.onclick = () => handleAnswer(8);
-            unknownBtn.className = 'choice-btn sm:col-span-2 w-full text-left p-3.5 rounded-xl bg-stone-100/90 hover:bg-rose-50 border-2 border-stone-300 hover:border-rose-300 flex items-center justify-center gap-2.5 shadow-2xs';
-            unknownBtn.innerHTML = `
-                <span class="w-6 h-6 rounded-lg bg-slate-700 text-white font-black text-xs flex items-center justify-center shrink-0">9</span>
-                <span class="text-xs sm:text-sm font-bold text-slate-700">わからない（パスして正解を見る）</span>
-            `;
-            grid.appendChild(unknownBtn);
+            quizState.currentChoices = eightChoices;
 
-            document.getElementById('feedback-panel').classList.add('hidden');
+            const choicesGrid = document.getElementById('choices-grid');
+            choicesGrid.innerHTML = '';
+
+            eightChoices.forEach((choice, idx) => {
+                const num = idx + 1;
+                const btn = document.createElement('button');
+                btn.id = `choice-btn-${idx}`;
+                btn.onclick = () => handleAnswer(idx, false);
+
+                if (choice.isUnknown) {
+                    btn.className = 'choice-btn sm:col-span-2 flex items-center gap-3 p-3.5 rounded-xl border-2 border-dashed border-stone-300 bg-stone-100/90 hover:bg-stone-200/70 hover:border-slate-400 text-slate-600 text-left font-bold';
+                    btn.innerHTML = `
+                        <span class="w-7 h-7 rounded-lg bg-slate-600 text-white text-xs font-black flex items-center justify-center shrink-0">${num}</span>
+                        <span class="text-sm">${choice.text}</span>
+                    `;
+                } else {
+                    btn.className = 'choice-btn flex items-center gap-3 p-3.5 rounded-xl border-2 border-stone-200 bg-white hover:border-indigo-500 hover:bg-indigo-50/40 text-slate-800 text-left shadow-2xs';
+                    btn.innerHTML = `
+                        <span class="w-7 h-7 rounded-lg bg-stone-100 border border-stone-200 text-slate-700 text-xs font-black flex items-center justify-center shrink-0">${num}</span>
+                        <span class="text-sm sm:text-[15px] font-bold leading-snug">${choice.text}</span>
+                    `;
+                }
+                choicesGrid.appendChild(btn);
+            });
+
             lucide.createIcons();
             startTimer();
         }
 
-        function toggleCurrentQuizWordCheck() {
-            const qWord = quizState.questions[quizState.currentIndex];
-            if (!qWord) return;
-            toggleWordCheck(qWord.id);
-            updateQuizCheckButton(qWord.id);
-        }
-
-        function updateQuizCheckButton(wordId) {
-            const btn = document.getElementById('btn-quiz-check');
-            if (!btn) return;
-            const isChecked = Boolean(checkedWords[wordId]);
-            if (isChecked) {
-                btn.className = 'absolute top-3.5 right-3.5 p-2 rounded-xl border border-amber-300 bg-amber-50 text-amber-500 transition focus:outline-none';
-                btn.innerHTML = '<i data-lucide="star" class="w-5 h-5 fill-amber-400 text-amber-500"></i>';
-            } else {
-                btn.className = 'absolute top-3.5 right-3.5 p-2 rounded-xl border border-stone-200 bg-stone-50/80 hover:bg-amber-50 text-slate-400 transition focus:outline-none';
-                btn.innerHTML = '<i data-lucide="star" class="w-5 h-5"></i>';
-            }
-            lucide.createIcons();
-        }
-
         function startTimer() {
-            const startTime = Date.now();
-            const timerText = document.getElementById('timer-text');
             const timerBar = document.getElementById('timer-bar');
+            const timerText = document.getElementById('timer-text');
 
-            timerText.textContent = `${TIME_LIMIT_SEC.toFixed(1)}秒`;
             timerBar.style.width = '100%';
             timerBar.className = 'h-full bg-indigo-600 transition-all duration-75 ease-linear';
+            timerText.textContent = `${TIME_LIMIT_SEC.toFixed(1)}秒`;
+            timerText.className = 'font-mono text-sm font-bold text-indigo-900';
+
+            const startTime = performance.now();
+            const durationMs = TIME_LIMIT_SEC * 1000;
 
             quizState.timerId = setInterval(() => {
-                const elapsed = (Date.now() - startTime) / 1000;
-                const remaining = Math.max(0, TIME_LIMIT_SEC - elapsed);
-                quizState.timeLeft = remaining;
+                const elapsed = performance.now() - startTime;
+                const remainingMs = Math.max(0, durationMs - elapsed);
+                const remainingSec = remainingMs / 1000;
+                const pct = (remainingMs / durationMs) * 100;
 
-                timerText.textContent = `${remaining.toFixed(1)}秒`;
-                const pct = (remaining / TIME_LIMIT_SEC) * 100;
                 timerBar.style.width = `${pct}%`;
+                timerText.textContent = `${remainingSec.toFixed(1)}秒`;
 
-                if (remaining <= 5) {
-                    timerBar.className = 'h-full bg-rose-500 transition-all duration-75 ease-linear';
-                } else if (remaining <= 10) {
+                if (remainingSec <= 5) {
+                    timerBar.className = 'h-full bg-rose-600 transition-all duration-75 ease-linear';
+                    timerText.className = 'font-mono text-sm font-black text-rose-600';
+                } else if (remainingSec <= 10) {
                     timerBar.className = 'h-full bg-amber-500 transition-all duration-75 ease-linear';
+                    timerText.className = 'font-mono text-sm font-bold text-amber-700';
                 }
 
-                if (remaining <= 0) {
+                if (remainingMs <= 0) {
                     stopTimer();
-                    handleAnswer(-1); // 時間切れ
+                    handleAnswer(-1, true);
                 }
-            }, 80);
+            }, 50);
         }
 
         function stopTimer() {
@@ -1497,107 +1760,127 @@
             }
         }
 
-        function handleAnswer(selectedIndex) {
+        /**
+         * ============================================================================
+         * 6. 回答判定＆習得ステータス更新ロジック
+         * ============================================================================
+         */
+        function handleAnswer(selectedIndex, isTimeout) {
             if (quizState.answered) return;
             quizState.answered = true;
             stopTimer();
 
-            const qWord = quizState.questions[quizState.currentIndex];
-            const prevProg = { ...userProgress[qWord.id] };
+            if (document.activeElement && typeof document.activeElement.blur === 'function') {
+                document.activeElement.blur();
+            }
 
-            const isCorrect =
-                selectedIndex >= 0 &&
-                selectedIndex < 8 &&
-                quizState.currentChoices[selectedIndex].id === qWord.id;
+            const wordObj = quizState.questions[quizState.currentIndex];
+            const prog = userProgress[wordObj.id];
+            const wasMastered = prog.mastered;
+            const prevStreak = prog.streak;
+
+            const selectedChoice = selectedIndex >= 0 ? quizState.currentChoices[selectedIndex] : null;
+            const isCorrect = Boolean(selectedChoice && selectedChoice.isCorrect);
+            const isUnknown = Boolean(selectedChoice && selectedChoice.isUnknown);
 
             let statusChangeText = '';
             let statusChangeClass = '';
+            let outcomeType = '';
 
             if (isCorrect) {
                 quizState.correctCount++;
-                if (prevProg.mastered) {
+                if (wasMastered) {
                     statusChangeText = '習得済みキープ！';
                     statusChangeClass = 'bg-emerald-100 text-emerald-800';
+                    outcomeType = 'kept';
                 } else {
-                    const nextStreak = prevProg.streak + 1;
-                    if (nextStreak >= 2) {
-                        userProgress[qWord.id] = { streak: 2, mastered: true };
+                    prog.streak += 1;
+                    if (prog.streak >= 2) {
+                        prog.mastered = true;
                         quizState.promotedCount++;
-                        statusChangeText = '🎉 2回連続正解で「習得済み」に昇格！';
-                        statusChangeClass = 'bg-emerald-500 text-white';
+                        statusChangeText = '祝・習得済みに昇格！(2/2)';
+                        statusChangeClass = 'bg-emerald-600 text-white';
+                        outcomeType = 'promoted';
                     } else {
-                        userProgress[qWord.id] = { streak: 1, mastered: false };
                         statusChangeText = '連続正解 1/2（あと1回で習得！）';
-                        statusChangeClass = 'bg-amber-100 text-amber-800';
+                        statusChangeClass = 'bg-amber-100 text-amber-900';
+                        outcomeType = 'streak1';
                     }
                 }
             } else {
-                userProgress[qWord.id] = { streak: 0, mastered: false };
-                if (prevProg.mastered) {
+                prog.streak = 0;
+                prog.mastered = false;
+                if (wasMastered) {
                     quizState.demotedCount++;
-                    statusChangeText = '⚠ 習得済みから「未習得」に降格';
+                    statusChangeText = '習得済み → 未習得へ降格 (0/2)';
                     statusChangeClass = 'bg-rose-600 text-white';
+                    outcomeType = 'demoted';
+                } else if (prevStreak === 1) {
+                    statusChangeText = '連続記録リセット (1/2 → 0/2)';
+                    statusChangeClass = 'bg-rose-100 text-rose-800';
+                    outcomeType = 'reset';
                 } else {
-                    statusChangeText = '連続正解リセット (0/2)';
+                    statusChangeText = '未習得のまま (0/2)';
                     statusChangeClass = 'bg-slate-200 text-slate-700';
+                    outcomeType = 'stay_unlearned';
                 }
             }
 
             saveProgress();
 
             quizState.history.push({
-                word: qWord,
-                isCorrect: isCorrect,
-                wasPromoted: !prevProg.mastered && userProgress[qWord.id].mastered,
-                wasDemoted: prevProg.mastered && !userProgress[qWord.id].mastered,
-                currentStatus: { ...userProgress[qWord.id] }
+                wordObj,
+                isCorrect,
+                isTimeout,
+                isUnknown,
+                outcomeType,
+                newStatus: { ...prog }
             });
 
-            // ボタンのスタイル更新
-            const buttons = document.querySelectorAll('#choices-grid button');
-            buttons.forEach(btn => {
+            quizState.currentChoices.forEach((c, idx) => {
+                const btn = document.getElementById(`choice-btn-${idx}`);
                 btn.disabled = true;
-                const idx = Number(btn.dataset.choiceIndex);
-                const isThisCorrect = idx < 8 && quizState.currentChoices[idx].id === qWord.id;
-                const isThisSelected = idx === selectedIndex;
 
-                if (isThisCorrect) {
-                    btn.className = 'choice-btn w-full text-left p-3.5 rounded-xl bg-emerald-50 border-2 border-emerald-500 flex items-start gap-3 shadow-sm';
-                } else if (isThisSelected) {
-                    btn.className = `${idx === 8 ? 'sm:col-span-2 ' : ''}choice-btn w-full text-left p-3.5 rounded-xl bg-rose-50 border-2 border-rose-500 flex items-start gap-3 animate-shake`;
+                if (c.isCorrect) {
+                    btn.className = 'flex items-center gap-3 p-3.5 rounded-xl border-2 border-emerald-600 bg-emerald-50 text-emerald-950 text-left shadow-sm';
+                    btn.querySelector('span:first-child').className = 'w-7 h-7 rounded-lg bg-emerald-600 text-white text-xs font-black flex items-center justify-center shrink-0';
+                } else if (idx === selectedIndex) {
+                    btn.className = c.isUnknown
+                        ? 'sm:col-span-2 flex items-center gap-3 p-3.5 rounded-xl border-2 border-rose-500 bg-rose-50 text-rose-950 text-left'
+                        : 'flex items-center gap-3 p-3.5 rounded-xl border-2 border-rose-500 bg-rose-50 text-rose-950 text-left';
+                    btn.querySelector('span:first-child').className = 'w-7 h-7 rounded-lg bg-rose-600 text-white text-xs font-black flex items-center justify-center shrink-0';
                 } else {
-                    btn.classList.add('opacity-50');
+                    btn.classList.add('opacity-45');
                 }
             });
 
-            // フィードバックパネル表示
             const fbPanel = document.getElementById('feedback-panel');
-            const fbResultBadge = document.getElementById('fb-result-badge');
-            const fbStatusChange = document.getElementById('fb-status-change');
+            const fbBadge = document.getElementById('fb-result-badge');
+            const fbStatus = document.getElementById('fb-status-change');
             const fbMeaning = document.getElementById('fb-correct-meaning');
+            const nextLabel = document.getElementById('btn-next-label');
+
+            fbMeaning.textContent = `${wordObj.word}（${wordObj.reading}）： ${wordObj.meaning}`;
+            fbStatus.textContent = statusChangeText;
+            fbStatus.className = `inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold ${statusChangeClass}`;
 
             if (isCorrect) {
-                fbPanel.className = 'mt-4 rounded-2xl p-5 border-2 border-emerald-300 bg-emerald-50/70 shadow-md animate-pop';
-                fbResultBadge.className = 'inline-flex items-center gap-1 px-3 py-1 rounded-lg text-sm font-black bg-emerald-600 text-white';
-                fbResultBadge.textContent = '〇 正解！';
+                fbPanel.className = 'mt-4 rounded-2xl p-5 border-2 border-emerald-400 bg-emerald-50/90 shadow-md animate-pop';
+                fbBadge.className = 'inline-flex items-center gap-1 px-3 py-1 rounded-lg text-sm font-black bg-emerald-600 text-white';
+                fbBadge.innerHTML = `<i data-lucide="circle-check" class="w-4 h-4"></i> 正解！`;
             } else {
-                fbPanel.className = 'mt-4 rounded-2xl p-5 border-2 border-rose-300 bg-rose-50/70 shadow-md animate-pop';
-                fbResultBadge.className = 'inline-flex items-center gap-1 px-3 py-1 rounded-lg text-sm font-black bg-rose-600 text-white';
-                fbResultBadge.textContent = selectedIndex === -1 ? '× 時間切れ！' : (selectedIndex === 8 ? 'パス（未習得）' : '× 不正解');
+                document.getElementById('question-card').classList.add('animate-shake');
+                fbPanel.className = 'mt-4 rounded-2xl p-5 border-2 border-rose-400 bg-rose-50/90 shadow-md animate-pop';
+                fbBadge.className = 'inline-flex items-center gap-1 px-3 py-1 rounded-lg text-sm font-black bg-rose-600 text-white';
+                const label = isTimeout ? '時間切れ！' : (isUnknown ? 'わからない（未習得扱い）' : '不正解…');
+                fbBadge.innerHTML = `<i data-lucide="circle-x" class="w-4 h-4"></i> ${label}`;
             }
-
-            fbStatusChange.className = `inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold ${statusChangeClass}`;
-            fbStatusChange.textContent = statusChangeText;
-            fbMeaning.textContent = qWord.meaning;
 
             const isLast = quizState.currentIndex >= quizState.questions.length - 1;
-            document.getElementById('btn-next-label').textContent = isLast ? '結果を見る' : '次の問題へ';
-            fbPanel.classList.remove('hidden');
+            nextLabel.textContent = isLast ? '結果を見る' : '次の問題へ';
 
-            // 選択直後にボタンに残ったフォーカスを外してEnter/Space重複発火を防止
-            if (document.activeElement && typeof document.activeElement.blur === 'function') {
-                document.activeElement.blur();
-            }
+            fbPanel.classList.remove('hidden');
+            lucide.createIcons();
         }
 
         function nextQuestion() {
@@ -1605,11 +1888,21 @@
                 quizState.currentIndex++;
                 renderCurrentQuestion();
             } else {
-                showQuizResult();
+                showResultView();
             }
         }
 
-        function showQuizResult() {
+        function quitQuiz() {
+            stopTimer();
+            switchTab('stages');
+        }
+
+        /**
+         * ============================================================================
+         * 7. リザルト画面描画
+         * ============================================================================
+         */
+        function showResultView() {
             stopTimer();
             document.getElementById('view-quiz').classList.add('hidden');
             document.getElementById('view-result').classList.remove('hidden');
@@ -1620,58 +1913,53 @@
             document.getElementById('res-promoted').textContent = quizState.promotedCount;
             document.getElementById('res-demoted').textContent = quizState.demotedCount;
 
-            const list = document.getElementById('result-word-list');
-            list.innerHTML = '';
+            const listEl = document.getElementById('result-word-list');
+            listEl.innerHTML = '';
 
             quizState.history.forEach(item => {
-                const w = item.word;
-                const isChecked = Boolean(checkedWords[w.id]);
-                const row = document.createElement('div');
-                row.className = 'p-3 bg-white flex items-center justify-between gap-3';
+                const { wordObj, isCorrect, newStatus, outcomeType } = item;
+                let badgeHtml = '';
 
-                let statusBadge = '';
-                if (item.currentStatus.mastered) {
-                    statusBadge = '<span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 shrink-0">習得済み</span>';
-                } else if (item.currentStatus.streak === 1) {
-                    statusBadge = '<span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 shrink-0">1/2 習得中</span>';
+                if (newStatus.mastered) {
+                    badgeHtml = `<span class="px-2 py-0.5 rounded-md text-[11px] font-bold bg-emerald-100 text-emerald-800">
+                        ${outcomeType === 'promoted' ? '★ 新規習得！' : '習得済み'}
+                    </span>`;
+                } else if (newStatus.streak === 1) {
+                    badgeHtml = `<span class="px-2 py-0.5 rounded-md text-[11px] font-bold bg-amber-100 text-amber-800">習得中 (1/2)</span>`;
                 } else {
-                    statusBadge = '<span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-slate-100 text-slate-600 shrink-0">未習得</span>';
+                    badgeHtml = `<span class="px-2 py-0.5 rounded-md text-[11px] font-bold ${
+                        outcomeType === 'demoted' ? 'bg-rose-100 text-rose-800' : 'bg-slate-100 text-slate-600'
+                    }">${outcomeType === 'demoted' ? '↓ 未習得へ降格' : '未習得 (0/2)'}</span>`;
                 }
 
+                const row = document.createElement('div');
+                row.className = 'p-3 bg-white flex items-center justify-between gap-3';
                 row.innerHTML = `
                     <div class="flex items-center gap-2.5 min-w-0">
-                        <button onclick="toggleResultWordCheck(${w.id}, this)" class="p-1 rounded-lg hover:bg-amber-50 shrink-0" title="チェック切り替え">
-                            <i data-lucide="star" class="w-4 h-4 ${isChecked ? 'fill-amber-400 text-amber-500' : 'text-slate-300'}"></i>
-                        </button>
-                        <span class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-black shrink-0 ${
-                            item.isCorrect ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'
-                        }">${item.isCorrect ? '〇' : '×'}</span>
+                        <span class="w-6 h-6 rounded-full flex items-center justify-center shrink-0 text-xs font-black ${
+                            isCorrect ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'
+                        }">
+                            ${isCorrect ? '○' : '×'}
+                        </span>
                         <div class="min-w-0">
                             <div class="font-bold text-sm text-slate-900 truncate">
-                                <span class="text-xs text-slate-400 mr-1">No.${w.id}</span>${w.word}
-                                <span class="text-xs font-normal text-slate-500 ml-1">(${w.reading})</span>
+                                <span class="text-xs text-slate-400 font-mono mr-1">No.${wordObj.id}</span>${wordObj.word} <span class="text-xs font-normal text-slate-500">（${wordObj.reading}）</span>
                             </div>
-                            <div class="text-xs text-slate-600 truncate">${w.meaning}</div>
+                            <div class="text-xs text-slate-600 truncate">${wordObj.meaning}</div>
                         </div>
                     </div>
-                    ${statusBadge}
+                    <div class="shrink-0">${badgeHtml}</div>
                 `;
-                list.appendChild(row);
+                listEl.appendChild(row);
             });
 
             lucide.createIcons();
-        }
-
-        function toggleResultWordCheck(wordId, btnEl) {
-            toggleWordCheck(wordId);
-            const isChecked = Boolean(checkedWords[wordId]);
-            btnEl.innerHTML = `<i data-lucide="star" class="w-4 h-4 ${isChecked ? 'fill-amber-400 text-amber-500' : 'text-slate-300'}"></i>`;
-            lucide.createIcons();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         /**
          * ============================================================================
-         * 6. 単語一覧（辞書）画面ロジック
+         * 8. 単語一覧（辞書）描画＆フィルタリング
          * ============================================================================
          */
         function setDictFilter(filter) {
@@ -1680,35 +1968,31 @@
                 btn.className = 'dict-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 whitespace-nowrap';
             });
             const activeBtn = document.getElementById(`filter-${filter}`);
-            if (activeBtn) {
-                activeBtn.className = 'dict-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-white text-indigo-950 shadow-sm whitespace-nowrap';
-            }
-
+            activeBtn.className = 'dict-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-white text-indigo-950 shadow-sm whitespace-nowrap';
             const bulkBar = document.getElementById('checked-bulk-bar');
-            if (filter === 'checked') {
-                bulkBar.classList.remove('hidden');
-            } else {
-                bulkBar.classList.add('hidden');
+            if (bulkBar) {
+                if (filter === 'checked') bulkBar.classList.remove('hidden');
+                else bulkBar.classList.add('hidden');
             }
             renderDictionary();
         }
 
         function renderDictionary() {
-            const query = (document.getElementById('dict-search').value || '').trim().toLowerCase();
+            const query = document.getElementById('dict-search').value.trim().toLowerCase();
             const tbody = document.getElementById('dict-tbody');
             tbody.innerHTML = '';
 
             const filtered = KOBUN_WORDS.filter(w => {
                 const prog = userProgress[w.id];
-                if (currentDictFilter === 'checked' && !checkedWords[w.id]) return false;
-                if (currentDictFilter === 'unlearned' && (prog.mastered || prog.streak > 0)) return false;
-                if (currentDictFilter === 'learning' && (prog.mastered || prog.streak !== 1)) return false;
+                const checked = isWordChecked(w.id);
+                if (currentDictFilter === 'checked' && !checked) return false;
                 if (currentDictFilter === 'mastered' && !prog.mastered) return false;
+                if (currentDictFilter === 'learning' && (prog.mastered || prog.streak !== 1)) return false;
+                if (currentDictFilter === 'unlearned' && (prog.mastered || prog.streak !== 0)) return false;
 
                 if (!query) return true;
                 return (
                     String(w.id) === query ||
-                    `no.${w.id}`.includes(query) ||
                     w.word.toLowerCase().includes(query) ||
                     w.reading.toLowerCase().includes(query) ||
                     w.meaning.toLowerCase().includes(query)
@@ -1717,186 +2001,96 @@
 
             document.getElementById('dict-count').textContent = filtered.length;
 
+            if (filtered.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="py-10 text-center text-slate-400 text-sm">
+                            条件に一致する古文単語が見つかりませんでした
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
             filtered.forEach(w => {
                 const prog = userProgress[w.id];
-                const isChecked = Boolean(checkedWords[w.id]);
-                const tr = document.createElement('tr');
-                tr.className = 'hover:bg-stone-50/80 transition';
+                const checked = isWordChecked(w.id);
+                let statusBadge = '';
 
-                let badgeHtml = '';
                 if (prog.mastered) {
-                    badgeHtml = '<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">習得済み</span>';
+                    statusBadge = `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>習得済み
+                    </span>`;
                 } else if (prog.streak === 1) {
-                    badgeHtml = '<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800">あと1回 (1/2)</span>';
+                    statusBadge = `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800">
+                        <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>習得中 (1/2)
+                    </span>`;
                 } else {
-                    badgeHtml = '<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-600">未習得</span>';
+                    statusBadge = `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-600">
+                        <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>未習得 (0/2)
+                    </span>`;
                 }
 
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-stone-50/80 transition';
                 tr.innerHTML = `
                     <td class="py-3 px-2 text-center">
-                        <button onclick="toggleDictWordCheck(${w.id})" class="p-1.5 rounded-lg hover:bg-amber-50 transition" title="チェック切り替え">
-                            <i data-lucide="star" class="w-4 h-4 ${isChecked ? 'fill-amber-400 text-amber-500' : 'text-slate-300'}"></i>
+                        <button onclick="toggleWordCheck(${w.id}, event)" title="チェック切り替え" class="p-1.5 rounded-lg hover:bg-amber-50 transition focus:outline-none">
+                            <i data-lucide="star" class="w-4 h-4 ${checked ? 'fill-amber-400 text-amber-500' : 'text-slate-300 hover:text-amber-400'}"></i>
                         </button>
                     </td>
-                    <td class="py-3 px-4 font-mono text-xs font-bold text-slate-400">No.${w.id}</td>
+                    <td class="py-3 px-4 font-mono text-xs text-slate-500 font-bold">
+                        <div>${w.id}</div>
+                        <div class="text-[10px] font-normal text-slate-400">${w.chapter}</div>
+                    </td>
                     <td class="py-3 px-4">
                         <div class="font-serif font-extrabold text-base text-slate-900">${w.word}</div>
-                        <div class="text-xs text-indigo-700">${w.reading}</div>
+                        <div class="text-xs text-indigo-700 font-medium">${w.reading}</div>
                     </td>
-                    <td class="py-3 px-4 text-xs sm:text-sm text-slate-700 font-medium leading-relaxed">${w.meaning}</td>
-                    <td class="py-3 px-4 text-center">${badgeHtml}</td>
+                    <td class="py-3 px-4 font-bold text-slate-700">${w.meaning}</td>
+                    <td class="py-3 px-4 text-center">${statusBadge}</td>
                 `;
                 tbody.appendChild(tr);
             });
-
             lucide.createIcons();
         }
 
-        function toggleDictWordCheck(wordId) {
-            toggleWordCheck(wordId);
-            renderDictionary();
-        }
-
-        /**
-         * ============================================================================
-         * 7. バックアップコード生成・復元・通知ユーティリティ
-         * ============================================================================
-         */
-        function generateBackupCode() {
-            const masteredIds = [];
-            const streak1Ids = [];
-            const checkedIds = [];
-
-            KOBUN_WORDS.forEach(w => {
-                const st = userProgress[w.id];
-                if (st && st.mastered) masteredIds.push(w.id);
-                else if (st && st.streak === 1) streak1Ids.push(w.id);
-                if (checkedWords[w.id]) checkedIds.push(w.id);
-            });
-
-            const payload = JSON.stringify({
-                v: 1,
-                m: masteredIds,
-                s: streak1Ids,
-                c: checkedIds
-            });
-            return 'CJV315:' + btoa(payload);
-        }
-
-        function openBackupModal() {
-            document.getElementById('backup-code-box').value = generateBackupCode();
-            document.getElementById('backup-modal').classList.remove('hidden');
-            lucide.createIcons();
-        }
-
-        function closeBackupModal() {
-            document.getElementById('backup-modal').classList.add('hidden');
-        }
-
-        function copyBackupCode() {
-            const box = document.getElementById('backup-code-box');
-            box.value = generateBackupCode();
-            box.select();
-            box.setSelectionRange(0, 99999);
-            try {
-                document.execCommand('copy');
-                showToast('保存コードをクリップボードにコピーしました');
-            } catch (e) {
-                showToast('コードを選択しました。手動でコピーしてください');
-            }
-        }
-
-        function restoreFromBackupCode() {
-            const raw = (document.getElementById('backup-code-box').value || '').trim();
-            if (!raw.startsWith('CJV315:')) {
-                showToast('無効な保存コードです（CJV315: で始まるコードを入力してください）');
-                return;
-            }
-            try {
-                const decoded = JSON.parse(atob(raw.slice('CJV315:'.length)));
-                if (!decoded || decoded.v !== 1) throw new Error('Invalid version');
-
-                KOBUN_WORDS.forEach(w => {
-                    userProgress[w.id] = { streak: 0, mastered: false };
-                });
-                Object.keys(checkedWords).forEach(k => delete checkedWords[k]);
-
-                if (Array.isArray(decoded.m)) {
-                    decoded.m.forEach(id => {
-                        if (userProgress[id]) userProgress[id] = { streak: 2, mastered: true };
-                    });
-                }
-                if (Array.isArray(decoded.s)) {
-                    decoded.s.forEach(id => {
-                        if (userProgress[id] && !userProgress[id].mastered) {
-                            userProgress[id] = { streak: 1, mastered: false };
-                        }
-                    });
-                }
-                if (Array.isArray(decoded.c)) {
-                    decoded.c.forEach(id => {
-                        checkedWords[id] = true;
-                    });
-                }
-
-                saveProgress();
-                saveCheckedWords();
-                updateDashboardStats();
-                renderStageGrid();
-                updateCheckedBadges();
-                renderDictionary();
-                closeBackupModal();
-                showToast('保存コードから学習データを復元しました！');
-            } catch (e) {
-                showToast('保存コードの読み込みに失敗しました。文字が欠けていないか確認してください');
-            }
-        }
-
-        function showToast(msg) {
-            const toast = document.getElementById('toast');
-            document.getElementById('toast-msg').textContent = msg;
-            toast.classList.remove('hidden');
-            clearTimeout(window._toastTimer);
-            window._toastTimer = setTimeout(() => {
-                toast.classList.add('hidden');
-            }, 2800);
-        }
-
-        // キーボードショートカット（1〜9で選択、Enter/Spaceで次の問題へ）
+        // キーボードショートカット (1〜9キーで回答、Enter/Spaceキーで次へ)
         window.addEventListener('keydown', (e) => {
             const quizView = document.getElementById('view-quiz');
             if (!quizView || quizView.classList.contains('hidden')) return;
-            if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
-            if (e.repeat) return;
-
-            let digit = null;
-            if (e.code && e.code.startsWith('Digit') && e.code.length === 6) {
-                const n = Number(e.code.slice(5));
-                if (n >= 1 && n <= 9) digit = n;
-            } else if (e.code && e.code.startsWith('Numpad') && e.code.length === 7) {
-                const n = Number(e.code.slice(6));
-                if (n >= 1 && n <= 9) digit = n;
-            } else if (e.key >= '1' && e.key <= '9') {
-                digit = Number(e.key);
-            } else if (e.key >= '１' && e.key <= '９') {
-                digit = e.key.charCodeAt(0) - '０'.charCodeAt(0);
-            }
+            if (e.isComposing || e.repeat) return;
 
             if (!quizState.answered) {
-                if (digit !== null) {
+                let num = 0;
+                if (e.key >= '1' && e.key <= '9') {
+                    num = parseInt(e.key, 10);
+                } else if (e.code && e.code.startsWith('Digit')) {
+                    num = parseInt(e.code.replace('Digit', ''), 10);
+                } else if (e.code && e.code.startsWith('Numpad')) {
+                    num = parseInt(e.code.replace('Numpad', ''), 10);
+                } else if (e.key >= '１' && e.key <= '９') {
+                    num = e.key.charCodeAt(0) - '１'.charCodeAt(0) + 1;
+                }
+
+                if (num >= 1 && num <= 9 && num <= quizState.currentChoices.length) {
                     e.preventDefault();
                     e.stopPropagation();
-                    handleAnswer(digit - 1);
+                    handleAnswer(num - 1, false);
                 }
             } else {
-                if (e.key === 'Enter' || e.code === 'Enter' || e.code === 'NumpadEnter' || e.key === ' ' || e.code === 'Space') {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    nextQuestion();
+                const feedbackPanel = document.getElementById('feedback-panel');
+                if (feedbackPanel && !feedbackPanel.classList.contains('hidden')) {
+                    if (e.key === 'Enter' || e.code === 'Enter' || e.code === 'NumpadEnter' || e.key === ' ' || e.code === 'Space') {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        nextQuestion();
+                    }
                 }
             }
         }, true);
 
+        // 起動
         window.addEventListener('DOMContentLoaded', initApp);
     </script>
 </body>
