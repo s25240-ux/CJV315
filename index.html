@@ -1857,6 +1857,25 @@
             }, 2800);
         }
 
+        // キーボードショートカット（1〜9で選択、Enter/Spaceで次の問題へ）
+        document.addEventListener('keydown', (e) => {
+            const quizView = document.getElementById('view-quiz');
+            if (!quizView || quizView.classList.contains('hidden')) return;
+            if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
+
+            if (!quizState.answered) {
+                if (e.key >= '1' && e.key <= '9') {
+                    e.preventDefault();
+                    handleAnswer(Number(e.key) - 1);
+                }
+            } else {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    nextQuestion();
+                }
+            }
+        });
+
         window.addEventListener('DOMContentLoaded', initApp);
     </script>
 </body>
