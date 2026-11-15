@@ -1,0 +1,2003 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CJV315</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Noto Sans JP & Shippori Mincho -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=Shippori+Mincho:wght@600;800&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Noto Sans JP"', 'sans-serif'],
+                        serif: ['"Shippori Mincho"', 'serif'],
+                    },
+                    colors: {
+                        washi: '#FAF8F5',
+                        sumi: '#1E293B',
+                        indigo: {
+                            850: '#1E1B4B',
+                            950: '#0F172A',
+                        },
+                        matcha: '#2E6B58',
+                        shu: '#C83C32',
+                        kin: '#C69C3A',
+                    },
+                    animation: {
+                        'pop': 'pop 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+                        'shake': 'shake 0.4s cubic-bezier(.36,.07,.19,.97) both',
+                        'fade-in': 'fadeIn 0.25s ease-out',
+                    },
+                    keyframes: {
+                        pop: {
+                            '0%': { transform: 'scale(0.85)', opacity: '0' },
+                            '100%': { transform: 'scale(1)', opacity: '1' },
+                        },
+                        shake: {
+                            '10%, 90%': { transform: 'translate3d(-2px, 0, 0)' },
+                            '20%, 80%': { transform: 'translate3d(4px, 0, 0)' },
+                            '30%, 50%, 70%': { transform: 'translate3d(-6px, 0, 0)' },
+                            '40%, 60%': { transform: 'translate3d(6px, 0, 0)' },
+                        },
+                        fadeIn: {
+                            '0%': { opacity: '0', transform: 'translateY(6px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #FAF8F5;
+            background-image: radial-gradient(#E2DDD5 0.75px, transparent 0.75px);
+            background-size: 20px 20px;
+            color: #1E293B;
+            -webkit-tap-highlight-color: transparent;
+        }
+        /* カスタムスクロールバー */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #F1EDE6;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #CBD5E1;
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94A3B8;
+        }
+        .choice-btn {
+            transition: all 0.15s ease;
+        }
+        .choice-btn:active:not(:disabled) {
+            transform: scale(0.985);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col font-sans antialiased selection:bg-indigo-200 selection:text-indigo-900">
+
+    <!-- ヘッダーナビゲーション -->
+    <header class="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-stone-200 shadow-sm">
+        <div class="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
+            <!-- ロゴ・タイトル -->
+            <button onclick="switchTab('stages')" class="flex items-center gap-2.5 text-left group focus:outline-none">
+                <div class="w-9 h-9 rounded-xl bg-indigo-950 text-amber-300 flex items-center justify-center font-serif font-extrabold text-lg shadow-sm group-hover:bg-indigo-900 transition">
+                    C
+                </div>
+                <div>
+                    <h1 class="font-serif font-extrabold text-base sm:text-lg text-slate-900 tracking-tight leading-none">
+                        CJV<span class="text-indigo-700">315</span>
+                    </h1>
+                    <p class="text-[11px] text-slate-500 font-medium mt-0.5">古典単語315 番号・収録語準拠</p>
+                </div>
+            </button>
+
+            <!-- ナビゲーションタブ & リセット -->
+            <div class="flex items-center gap-1.5 sm:gap-2">
+                <nav class="flex bg-stone-100 p-1 rounded-xl border border-stone-200/80">
+                    <button id="nav-stages" onclick="switchTab('stages')" class="px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition flex items-center gap-1.5 bg-white text-indigo-950 shadow-sm">
+                        <i data-lucide="layers" class="w-4 h-4"></i>
+                        <span>ステージ</span>
+                    </button>
+                    <button id="nav-dict" onclick="switchTab('dict')" class="px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition flex items-center gap-1.5 text-slate-600 hover:text-slate-900">
+                        <i data-lucide="book-open" class="w-4 h-4"></i>
+                        <span>単語一覧</span>
+                    </button>
+                </nav>
+                <button onclick="openBackupModal()" title="データの引き継ぎ・バックアップ" class="px-2.5 py-1.5 rounded-xl bg-stone-100 hover:bg-indigo-50 text-slate-700 hover:text-indigo-900 border border-stone-200 text-xs font-bold transition flex items-center gap-1">
+                    <i data-lucide="save" class="w-3.5 h-3.5 text-indigo-700"></i>
+                    <span class="hidden sm:inline">データ引き継ぎ</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- メインコンテンツ領域 -->
+    <main class="flex-1 max-w-5xl w-full mx-auto px-4 py-6">
+
+        <!-- ==================== 1. ホーム / ステージ選択画面 ==================== -->
+        <section id="view-stages" class="space-y-6 animate-fade-in">
+            <!-- 全体進捗ダッシュボード -->
+            <div class="bg-white rounded-2xl p-5 sm:p-6 border border-stone-200/90 shadow-sm">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+                    <div>
+                        <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-50 text-indigo-800 border border-indigo-100 mb-1.5">
+                            <i data-lucide="award" class="w-3.5 h-3.5"></i>
+                            <span>2回連続正解で「習得済み」に昇格！</span>
+                        </div>
+                        <h2 class="text-lg sm:text-xl font-bold text-slate-900">全体の習得状況</h2>
+                    </div>
+
+                    <!-- ステータス内訳バッジ -->
+                    <div class="flex flex-wrap items-center gap-2 sm:gap-3 text-xs sm:text-sm">
+                        <div class="px-3 py-1.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 font-bold flex items-center gap-1.5">
+                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                            習得済み: <span id="stat-mastered" class="text-base">0</span>語
+                        </div>
+                        <div class="px-3 py-1.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 font-bold flex items-center gap-1.5">
+                            <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+                            習得中(1/2): <span id="stat-learning" class="text-base">0</span>語
+                        </div>
+                        <div class="px-3 py-1.5 rounded-xl bg-slate-100 border border-slate-200 text-slate-700 font-bold flex items-center gap-1.5">
+                            <span class="w-2.5 h-2.5 rounded-full bg-slate-400"></span>
+                            未習得: <span id="stat-unlearned" class="text-base">315</span>語
+                        </div>
+                    </div>
+                </div>
+
+                <!-- プログレスバー -->
+                <div class="space-y-1.5">
+                    <div class="flex justify-between items-end text-sm">
+                        <span class="font-bold text-slate-600">マスター達成率</span>
+                        <span class="font-black text-xl text-indigo-950">
+                            <span id="stat-percent">0.0</span><span class="text-xs font-bold text-slate-500 ml-0.5">%</span>
+                            <span class="text-xs font-medium text-slate-400 ml-1">(<span id="stat-mastered-sub">0</span> / 315語)</span>
+                        </span>
+                    </div>
+                    <div class="w-full h-4 bg-stone-100 rounded-full overflow-hidden border border-stone-200/80 p-0.5 flex">
+                        <div id="bar-mastered" class="h-full bg-emerald-500 rounded-l-full transition-all duration-500" style="width: 0%"></div>
+                        <div id="bar-learning" class="h-full bg-amber-400 transition-all duration-500" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <!-- スペシャル演習モード -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-5 pt-5 border-t border-stone-100">
+                    <button id="btn-mode-unlearned" onclick="startSpecialQuiz('unlearned')" class="group flex items-center justify-between p-3.5 rounded-xl bg-gradient-to-r from-indigo-900 to-indigo-800 hover:from-indigo-800 hover:to-indigo-700 text-white shadow-sm transition text-left">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-lg bg-white/15 flex items-center justify-center shrink-0">
+                                <i data-lucide="flame" class="w-5 h-5 text-amber-300"></i>
+                            </div>
+                            <div>
+                                <div class="font-bold text-sm sm:text-base flex items-center gap-1.5">
+                                    未習得の単語から集中出題
+                                </div>
+                                <div class="text-xs text-indigo-200 mt-0.5" id="desc-unlearned">未習得の単語からランダムに10問出題</div>
+                            </div>
+                        </div>
+                        <i data-lucide="chevron-right" class="w-5 h-5 text-indigo-300 group-hover:translate-x-0.5 transition"></i>
+                    </button>
+
+                    <button id="btn-mode-mastered" onclick="startSpecialQuiz('mastered')" class="group flex items-center justify-between p-3.5 rounded-xl bg-white hover:bg-emerald-50/60 border-2 border-emerald-600/30 hover:border-emerald-600 text-slate-800 transition text-left">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+                                <i data-lucide="shield-check" class="w-5 h-5"></i>
+                            </div>
+                            <div>
+                                <div class="font-bold text-sm sm:text-base text-emerald-950">
+                                    習得済み単語の記憶チェック
+                                </div>
+                                <div class="text-xs text-slate-500 mt-0.5" id="desc-mastered">習得済みの単語から10問復習（誤答で未習得へ降格）</div>
+                            </div>
+                        </div>
+                        <i data-lucide="chevron-right" class="w-5 h-5 text-emerald-600 group-hover:translate-x-0.5 transition"></i>
+                    </button>
+                </div>
+
+                <!-- 追加機能: 全315語ランダム出題 & チェック済み単語出題 -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
+                    <!-- 全315語ランダム出題 (10/25/50/100題) -->
+                    <div class="p-3.5 rounded-xl bg-indigo-50/70 border border-indigo-200/80 flex flex-col justify-between gap-2.5">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-9 h-9 rounded-lg bg-indigo-900 text-amber-300 flex items-center justify-center shrink-0">
+                                <i data-lucide="shuffle" class="w-4 h-4"></i>
+                            </div>
+                            <div>
+                                <div class="font-bold text-sm text-indigo-950">全315語ランダム出題</div>
+                                <div class="text-[11px] text-slate-500">問題数を選んで総合実力テスト</div>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-4 gap-1.5">
+                            <button onclick="startAllRandomQuiz(10)" class="py-1.5 px-2 rounded-lg bg-white hover:bg-indigo-900 text-indigo-950 hover:text-white border border-indigo-200 font-black text-xs transition shadow-2xs">10題</button>
+                            <button onclick="startAllRandomQuiz(25)" class="py-1.5 px-2 rounded-lg bg-white hover:bg-indigo-900 text-indigo-950 hover:text-white border border-indigo-200 font-black text-xs transition shadow-2xs">25題</button>
+                            <button onclick="startAllRandomQuiz(50)" class="py-1.5 px-2 rounded-lg bg-white hover:bg-indigo-900 text-indigo-950 hover:text-white border border-indigo-200 font-black text-xs transition shadow-2xs">50題</button>
+                            <button onclick="startAllRandomQuiz(100)" class="py-1.5 px-2 rounded-lg bg-white hover:bg-indigo-900 text-indigo-950 hover:text-white border border-indigo-200 font-black text-xs transition shadow-2xs">100題</button>
+                        </div>
+                    </div>
+
+                    <!-- チェック済み単語から出題 -->
+                    <button id="btn-mode-checked" onclick="startSpecialQuiz('checked')" class="group flex items-center justify-between p-3.5 rounded-xl bg-amber-50/60 hover:bg-amber-50 border-2 border-amber-400/50 hover:border-amber-500 text-slate-800 transition text-left">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center shrink-0">
+                                <i data-lucide="star" class="w-5 h-5 fill-amber-400 text-amber-500"></i>
+                            </div>
+                            <div>
+                                <div class="font-bold text-sm sm:text-base text-amber-950 flex items-center gap-2">
+                                    <span>チェック済み単語から出題</span>
+                                    <span id="badge-checked-count" class="px-2 py-0.5 rounded-full text-xs font-black bg-amber-400 text-indigo-950">0語</span>
+                                </div>
+                                <div class="text-xs text-slate-600 mt-0.5" id="desc-checked">★チェックをつけた単語から出題します</div>
+                            </div>
+                        </div>
+                        <i data-lucide="chevron-right" class="w-5 h-5 text-amber-600 group-hover:translate-x-0.5 transition"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 32ステージグリッド -->
+            <div>
+                <div class="flex items-center justify-between mb-3 px-1">
+                    <h3 class="font-bold text-slate-800 flex items-center gap-2">
+                        <i data-lucide="grid" class="w-4 h-4 text-indigo-700"></i>
+                        <span>ステージ一覧（全32ステージ / 315語）</span>
+                    </h3>
+                    <span class="text-xs text-slate-500">1問20秒制限 / 8択＋9番「わからない」</span>
+                </div>
+                <div id="stage-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+                    <!-- JSでステージ1〜32を動的生成 -->
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== 2. クイズ出題画面 ==================== -->
+        <section id="view-quiz" class="hidden max-w-3xl mx-auto animate-fade-in">
+            <!-- 上部コントロール＆タイマーバー -->
+            <div class="bg-white rounded-2xl p-4 border border-stone-200 shadow-sm mb-4">
+                <div class="flex items-center justify-between gap-2 mb-3">
+                    <button onclick="quitQuiz()" class="inline-flex items-center gap-1 text-xs font-bold text-slate-500 hover:text-slate-800 py-1 px-2 rounded-lg hover:bg-stone-100 transition">
+                        <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                        <span>中断して戻る</span>
+                    </button>
+
+                    <div class="flex items-center gap-2">
+                        <span id="quiz-mode-label" class="text-xs font-bold px-2.5 py-1 rounded-md bg-indigo-50 text-indigo-900">
+                            ステージ 1
+                        </span>
+                        <span class="text-sm font-black text-slate-700">
+                            第 <span id="quiz-q-num" class="text-indigo-700 text-base">1</span> / <span id="quiz-q-total">10</span> 問
+                        </span>
+                    </div>
+
+                    <!-- 残り秒数表示 -->
+                    <div class="flex items-center gap-1.5 min-w-[76px] justify-end">
+                        <i data-lucide="timer" class="w-4 h-4 text-slate-500"></i>
+                        <span id="timer-text" class="font-mono text-sm font-bold text-indigo-900">20.0秒</span>
+                    </div>
+                </div>
+
+                <!-- 20秒カウントダウンバー -->
+                <div class="w-full h-2.5 bg-stone-100 rounded-full overflow-hidden">
+                    <div id="timer-bar" class="h-full bg-indigo-600 transition-all duration-75 ease-linear" style="width: 100%"></div>
+                </div>
+            </div>
+
+            <!-- 問題カード -->
+            <div id="question-card" class="bg-white rounded-2xl p-6 sm:p-8 border border-stone-200 shadow-sm text-center mb-4 relative overflow-hidden">
+                <!-- クイズ中の任意チェックボタン -->
+                <button id="btn-quiz-check" onclick="toggleCurrentQuizWordCheck()" title="この単語をチェック（★）する" class="absolute top-3.5 right-3.5 p-2 rounded-xl border border-stone-200 bg-stone-50/80 hover:bg-amber-50 text-slate-400 transition focus:outline-none">
+                    <i data-lucide="star" class="w-5 h-5"></i>
+                </button>
+
+                <!-- 現在の単語の習得ステータスバッジ -->
+                <div class="flex justify-center mb-3">
+                    <span id="word-status-badge" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-600">
+                        未習得（連続正解: 0/2）
+                    </span>
+                </div>
+
+                <!-- 古文単語・読み -->
+                <p id="word-reading" class="text-sm sm:text-base font-medium text-indigo-700 tracking-widest mb-1">おどろく</p>
+                <h2 id="word-display" class="font-serif font-extrabold text-4xl sm:text-5xl text-slate-900 tracking-wide my-2">
+                    驚く
+                </h2>
+                <p class="text-xs text-slate-400 mt-3">最も適切な現代語訳を1〜8から選択（わからない場合は9）</p>
+            </div>
+
+            <!-- 9択選択肢グリッド (1〜8: 意味, 9: わからない) -->
+            <div id="choices-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <!-- JSで1〜9番の選択肢ボタンを生成 -->
+            </div>
+
+            <!-- 回答後の正誤フィードバック＆次へボタン -->
+            <div id="feedback-panel" class="hidden mt-4 rounded-2xl p-5 border-2 shadow-md animate-pop">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div class="space-y-1.5">
+                        <div class="flex flex-wrap items-center gap-2">
+                            <span id="fb-result-badge" class="inline-flex items-center gap-1 px-3 py-1 rounded-lg text-sm font-black">
+                                正解！
+                            </span>
+                            <span id="fb-status-change" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold">
+                                連続正解 1/2
+                            </span>
+                        </div>
+                        <div class="text-sm text-slate-700 pt-1">
+                            <span class="font-bold text-slate-500 text-xs block">【正解の現代語訳】</span>
+                            <span id="fb-correct-meaning" class="font-bold text-base sm:text-lg text-slate-900"></span>
+                        </div>
+                    </div>
+
+                    <button id="btn-next-question" onclick="nextQuestion()" class="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-indigo-950 hover:bg-indigo-900 text-white font-bold text-sm shadow-sm transition flex items-center justify-center gap-2 shrink-0">
+                        <span id="btn-next-label">次の問題へ</span>
+                        <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== 3. リザルト（ステージ結果）画面 ==================== -->
+        <section id="view-result" class="hidden max-w-2xl mx-auto animate-fade-in">
+            <div class="bg-white rounded-2xl p-6 sm:p-8 border border-stone-200 shadow-sm text-center space-y-6">
+                <div>
+                    <div class="w-16 h-16 rounded-2xl bg-indigo-950 text-amber-300 flex items-center justify-center mx-auto mb-3 shadow-md">
+                        <i data-lucide="trophy" class="w-8 h-8"></i>
+                    </div>
+                    <p id="result-subtitle" class="text-xs font-bold text-indigo-700 uppercase tracking-wider">STAGE COMPLETE</p>
+                    <h2 id="result-title" class="text-2xl sm:text-3xl font-serif font-extrabold text-slate-900 mt-1">ステージ 1 結果</h2>
+                </div>
+
+                <!-- スコアサマリー -->
+                <div class="grid grid-cols-3 gap-3 bg-stone-50 p-4 rounded-2xl border border-stone-200/80">
+                    <div>
+                        <div class="text-xs font-bold text-slate-500">今回の正答数</div>
+                        <div class="text-2xl sm:text-3xl font-black text-indigo-950 mt-0.5">
+                            <span id="res-correct">0</span><span class="text-sm font-bold text-slate-400">/<span id="res-total">10</span></span>
+                        </div>
+                    </div>
+                    <div class="border-x border-stone-200">
+                        <div class="text-xs font-bold text-emerald-700">新規習得</div>
+                        <div class="text-2xl sm:text-3xl font-black text-emerald-600 mt-0.5">
+                            +<span id="res-promoted">0</span><span class="text-sm font-bold">語</span>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="text-xs font-bold text-rose-700">未習得へ降格</div>
+                        <div class="text-2xl sm:text-3xl font-black text-rose-600 mt-0.5">
+                            <span id="res-demoted">0</span><span class="text-sm font-bold">語</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 今回の出題単語リスト -->
+                <div class="text-left">
+                    <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 px-1">今回の出題結果と現在のステータス</h3>
+                    <div id="result-word-list" class="divide-y divide-stone-100 border border-stone-200 rounded-xl overflow-hidden max-h-80 overflow-y-auto">
+                        <!-- JSで結果リストを描画 -->
+                    </div>
+                </div>
+
+                <!-- アクションボタン -->
+                <div class="flex flex-col sm:flex-row gap-3 pt-2">
+                    <button onclick="switchTab('stages')" class="flex-1 py-3.5 px-4 rounded-xl border-2 border-stone-200 hover:bg-stone-50 font-bold text-slate-700 transition flex items-center justify-center gap-2">
+                        <i data-lucide="grid" class="w-4 h-4"></i>
+                        <span>ステージ一覧へ戻る</span>
+                    </button>
+                    <button id="btn-retry-quiz" onclick="retryCurrentQuiz()" class="flex-1 py-3.5 px-4 rounded-xl bg-indigo-950 hover:bg-indigo-900 text-white font-bold shadow-sm transition flex items-center justify-center gap-2">
+                        <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                        <span>もう一度挑戦する</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== 4. 単語一覧（辞書・進捗確認）画面 ==================== -->
+        <section id="view-dict" class="hidden space-y-4 animate-fade-in">
+            <div class="bg-white rounded-2xl p-4 sm:p-5 border border-stone-200 shadow-sm space-y-4">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div>
+                        <h2 class="text-lg font-bold text-slate-900">収録古文単語一覧（No.1〜315 全315語）</h2>
+                        <p class="text-xs text-slate-500">番号・単語・読み・意味での検索や、習得状況ごとの絞り込みができます</p>
+                    </div>
+                    <div class="text-xs font-bold text-indigo-900 bg-indigo-50 px-3 py-1.5 rounded-lg self-start sm:self-auto">
+                        表示件数: <span id="dict-count">315</span> 語
+                    </div>
+                </div>
+
+                <!-- 検索＆フィルタ -->
+                <div class="flex flex-col md:flex-row gap-3">
+                    <div class="relative flex-1">
+                        <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+                        <input id="dict-search" type="text" oninput="renderDictionary()" placeholder="番号・単語・ひらがな・現代語訳で検索（例：1、おどろく、目を覚ます）"
+                            class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-stone-200 bg-stone-50/50 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none text-sm transition">
+                    </div>
+                    <div class="flex bg-stone-100 p-1 rounded-xl border border-stone-200/80 shrink-0 overflow-x-auto">
+                        <button onclick="setDictFilter('all')" id="filter-all" class="dict-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-white text-indigo-950 shadow-sm whitespace-nowrap">すべて</button>
+                        <button onclick="setDictFilter('checked')" id="filter-checked" class="dict-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 whitespace-nowrap">★チェック(<span id="filter-checked-count">0</span>)</button>
+                        <button onclick="setDictFilter('unlearned')" id="filter-unlearned" class="dict-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 whitespace-nowrap">未習得(0)</button>
+                        <button onclick="setDictFilter('learning')" id="filter-learning" class="dict-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 whitespace-nowrap">あと1回(1/2)</button>
+                        <button onclick="setDictFilter('mastered')" id="filter-mastered" class="dict-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 whitespace-nowrap">習得済み</button>
+                    </div>
+                </div>
+                <div id="checked-bulk-bar" class="hidden flex items-center justify-between bg-amber-50 border border-amber-200 rounded-xl px-3.5 py-2 text-xs">
+                    <span class="font-bold text-amber-900">★ チェック済みの単語一覧を表示中です</span>
+                    <button onclick="clearAllChecked()" class="px-2.5 py-1 rounded-lg bg-white hover:bg-rose-50 text-rose-600 border border-rose-200 font-bold transition">
+                        チェックを一括解除
+                    </button>
+                </div>
+            </div>
+
+            <!-- 単語リストテーブル -->
+            <div class="bg-white rounded-2xl border border-stone-200 shadow-sm overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-stone-50 border-b border-stone-200 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                                <th class="py-3 px-2 w-12 text-center">★</th>
+                                <th class="py-3 px-4 w-20">No.</th>
+                                <th class="py-3 px-4 w-48">古文単語（読み）</th>
+                                <th class="py-3 px-4">重要な現代語訳</th>
+                                <th class="py-3 px-4 w-36 text-center">習得ステータス</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dict-tbody" class="divide-y divide-stone-100 text-sm">
+                            <!-- JSで動的に315語を描画 -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- データ引き継ぎ・バックアップモーダル -->
+    <div id="backup-modal" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-5 sm:p-6 border border-stone-200 shadow-xl space-y-4 animate-pop">
+            <div class="flex items-center justify-between">
+                <h3 class="font-bold text-base sm:text-lg text-slate-900 flex items-center gap-2">
+                    <i data-lucide="save" class="w-5 h-5 text-indigo-700"></i>
+                    <span>学習データの保存・引き継ぎ</span>
+                </h3>
+                <button onclick="closeBackupModal()" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-stone-100">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <p class="text-xs text-slate-600 leading-relaxed">
+                Googleサイト等でページを再起動するとブラウザの保存領域が変わる場合があります。下の「保存コードをコピー」してメモ帳などに残しておくと、次回いつでも続きから復元できます。
+            </p>
+            <div class="space-y-2">
+                <div class="flex items-center justify-between">
+                    <label class="text-xs font-bold text-slate-700">あなたの保存コード</label>
+                    <span id="cloud-sync-status" class="text-[11px] font-bold text-slate-400"></span>
+                </div>
+                <textarea id="backup-code-box" rows="3" placeholder="ここに保存コードが表示されます（復元時はコードを貼り付けて下のボタンを押してください）" class="w-full p-2.5 rounded-xl border border-stone-200 bg-stone-50 text-xs font-mono text-slate-700 focus:bg-white focus:border-indigo-500 outline-none"></textarea>
+            </div>
+            <div class="grid grid-cols-2 gap-2.5 pt-1">
+                <button onclick="copyBackupCode()" class="py-2.5 px-3 rounded-xl bg-indigo-950 hover:bg-indigo-900 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition">
+                    <i data-lucide="copy" class="w-4 h-4"></i>
+                    <span>保存コードをコピー</span>
+                </button>
+                <button onclick="restoreFromBackupCode()" class="py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition">
+                    <i data-lucide="upload" class="w-4 h-4"></i>
+                    <span>コードから復元</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- トースト通知 -->
+    <div id="toast" class="hidden fixed bottom-5 right-5 z-50 bg-slate-900 text-white text-xs sm:text-sm font-bold px-4 py-3 rounded-xl shadow-lg flex items-center gap-2 animate-pop">
+        <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i>
+        <span id="toast-msg">保存しました</span>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        window.cloudSync = {
+            enabled: false,
+            db: null,
+            userId: null,
+            appId: typeof __app_id !== 'undefined' ? __app_id : 'kobun-315-app',
+            async init() {
+                try {
+                    if (typeof __firebase_config === 'undefined') return;
+                    const firebaseConfig = JSON.parse(__firebase_config);
+                    const app = initializeApp(firebaseConfig);
+                    const auth = getAuth(app);
+                    this.db = getFirestore(app);
+
+                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                        await signInWithCustomToken(auth, __initial_auth_token);
+                    } else {
+                        await signInAnonymously(auth);
+                    }
+
+                    if (!auth.currentUser) return;
+                    this.userId = auth.currentUser.uid;
+                    this.enabled = true;
+
+                    const docRef = doc(this.db, 'artifacts', this.appId, 'users', this.userId, 'kobun315', 'state');
+                    const snap = await getDoc(docRef);
+                    if (snap.exists()) {
+                        const data = snap.data();
+                        if (data.progress) {
+                            Object.assign(window.userProgressRef, data.progress);
+                        }
+                        if (data.checked) {
+                            Object.assign(window.checkedWordsRef, data.checked);
+                        }
+                        if (typeof window.onCloudLoaded === 'function') {
+                            window.onCloudLoaded();
+                        }
+                    }
+                    const statusEl = document.getElementById('cloud-sync-status');
+                    if (statusEl) statusEl.textContent = 'クラウド自動保存: 有効';
+                } catch (e) {
+                    console.warn('Cloud sync unavailable in this embed context:', e);
+                }
+            },
+            async save(progressObj, checkedObj) {
+                if (!this.enabled || !this.db || !this.userId) return;
+                try {
+                    const docRef = doc(this.db, 'artifacts', this.appId, 'users', this.userId, 'kobun315', 'state');
+                    await setDoc(docRef, {
+                        progress: progressObj,
+                        checked: checkedObj,
+                        updatedAt: Date.now()
+                    });
+                } catch (e) {
+                    console.warn('Cloud save failed:', e);
+                }
+            }
+        };
+
+        window.addEventListener('DOMContentLoaded', () => {
+            window.cloudSync.init();
+        });
+    </script>
+
+    <script>
+        /**
+         * ============================================================================
+         * 1. 『古典単語315』No.1〜315 完全準拠データ
+         *    （全315語 / 10語×31ステージ + 5語×1ステージ = 32ステージ）
+         * ============================================================================
+         */
+        const KOBUN_WORDS = [
+            // --- Stage 1 (No.1〜10) ---
+            { id: 1, chapter: "Unit 1", word: "見る", reading: "みる", meaning: "①思う　②関係を結ぶ　③面倒を見る" },
+            { id: 2, chapter: "Unit 1", word: "見す", reading: "みす", meaning: "①結婚させる" },
+            { id: 3, chapter: "Unit 1", word: "見ゆ", reading: "みゆ", meaning: "①見える・思われる　②見せる　③結婚する" },
+            { id: 4, chapter: "Unit 1", word: "かいまみる", reading: "かいまみる", meaning: "①のぞき見る" },
+            { id: 5, chapter: "Unit 1", word: "よばふ", reading: "よばふ", meaning: "①呼び続ける　②求婚する" },
+            { id: 6, chapter: "Unit 1", word: "好く", reading: "すく", meaning: "①風流を好む" },
+            { id: 7, chapter: "Unit 1", word: "わたる", reading: "わたる", meaning: "①通る　②いらっしゃる　③続ける　④一面に" },
+            { id: 8, chapter: "Unit 1", word: "ありく", reading: "ありく", meaning: "①歩き回る・出歩く　②あちこちで〜してまわる　③〜しつづける" },
+            { id: 9, chapter: "Unit 1", word: "おこなふ", reading: "おこなふ", meaning: "①仏道修行をする・勤行する" },
+            { id: 10, chapter: "Unit 1", word: "悩む", reading: "なやむ", meaning: "①病気になる・病気で苦しむ・患う　②苦労する" },
+
+            // --- Stage 2 (No.11〜20) ---
+            { id: 11, chapter: "Unit 1", word: "おこたる", reading: "おこたる", meaning: "①病気が回復する　②油断する" },
+            { id: 12, chapter: "Unit 1", word: "おくる", reading: "おくる", meaning: "①人に先立たれる・死に遅れる　②怠る・乏しい" },
+            { id: 13, chapter: "Unit 1", word: "ながむ", reading: "ながむ", meaning: "①もの思いに沈む・ぼんやり見る　②詩歌を口ずさむ・作る" },
+            { id: 14, chapter: "Unit 1", word: "ときめく", reading: "ときめく", meaning: "①寵愛を受ける・かわいがられる　②時流に乗って栄える" },
+            { id: 15, chapter: "Unit 1", word: "かしづく", reading: "かしづく", meaning: "①大事に養い育てる　②大切に世話をする" },
+            { id: 16, chapter: "Unit 2", word: "めづ", reading: "めづ", meaning: "①愛する・好む・気に入る　②ほめる・感嘆する・賞美する" },
+            { id: 17, chapter: "Unit 2", word: "おどろく", reading: "おどろく", meaning: "①目を覚ます　②はっと気づく　③おどろく・びっくりする" },
+            { id: 18, chapter: "Unit 2", word: "こうず", reading: "こうず", meaning: "①疲れる・苦しい　②悩む・困る・つらく感じる" },
+            { id: 19, chapter: "Unit 2", word: "おぼゆ", reading: "おぼゆ", meaning: "①思われる・そのような気がする　②思い出す・思い出される　③似る・似ている" },
+            { id: 20, chapter: "Unit 2", word: "聞こゆ", reading: "きこゆ", meaning: "①聞こえる・耳に入る　②うわさされる・評判になる　③理解される・わけがわかる" },
+
+            // --- Stage 3 (No.21〜30) ---
+            { id: 21, chapter: "Unit 2", word: "まもる・まぼる", reading: "まもる・まぼる", meaning: "①じっと見つめる" },
+            { id: 22, chapter: "Unit 2", word: "たのむ", reading: "たのむ", meaning: "①あてにする・頼りにする・期待する　②あてにさせる・頼りにさせる" },
+            { id: 23, chapter: "Unit 2", word: "かづく", reading: "かづく", meaning: "①かぶる　②いただく　③かぶせる・与える" },
+            { id: 24, chapter: "Unit 2", word: "ののしる", reading: "ののしる", meaning: "①大声を出す・大声で騒ぐ　②評判になる・噂になる　③勢いが盛んである・羽振りをきかす" },
+            { id: 25, chapter: "Unit 2", word: "やる", reading: "やる", meaning: "①（人を）行かせる・（物を）送る　②〜しきれない・最後まで〜ない" },
+            { id: 26, chapter: "Unit 2", word: "いらふ", reading: "いらふ", meaning: "①答える・返事する" },
+            { id: 27, chapter: "Unit 2", word: "にほふ", reading: "にほふ", meaning: "①美しく映える・美しく輝く　②香りがする" },
+            { id: 28, chapter: "Unit 2", word: "あきらむ", reading: "あきらむ", meaning: "①明らかにする・はっきりさせる" },
+            { id: 29, chapter: "Unit 2", word: "ねんず", reading: "ねんず", meaning: "①我慢する　②祈る" },
+            { id: 30, chapter: "Unit 2", word: "まうく", reading: "まうく", meaning: "①準備する・用意する" },
+
+            // --- Stage 4 (No.31〜40) ---
+            { id: 31, chapter: "Unit 3", word: "ゐる", reading: "ゐる", meaning: "①座る　②じっとしている・留まる　③（〜し）ている　④連れていく・伴う" },
+            { id: 32, chapter: "Unit 3", word: "具す", reading: "ぐす", meaning: "①伴う・連れる・添える" },
+            { id: 33, chapter: "Unit 3", word: "経", reading: "ふ", meaning: "①たつ（経過する）　②通る（経由する）" },
+            { id: 34, chapter: "Unit 3", word: "さる", reading: "さる", meaning: "①避ける　②（時期が）くる・（そのときに）なる　③立ち去る・過ぎ去る" },
+            { id: 35, chapter: "Unit 3", word: "ものす", reading: "ものす", meaning: "①（ものごとを）する　②いらっしゃる" },
+            { id: 36, chapter: "Unit 3", word: "ならふ", reading: "ならふ", meaning: "①慣れる・習慣となる　②親しくなる・なじむ" },
+            { id: 37, chapter: "Unit 3", word: "しのぶ", reading: "しのぶ", meaning: "①がまんする・気持をこらえる　②人目につかないようにする　③思い出す・恋い慕う" },
+            { id: 38, chapter: "Unit 3", word: "わぶ", reading: "わぶ", meaning: "①困る・嘆く・つらく思う・思い悩む　②〜しかねる・容易に〜できない" },
+            { id: 39, chapter: "Unit 3", word: "をかし", reading: "をかし", meaning: "①すばらしい・興味深い　②おかしい・こっけいだ" },
+            { id: 40, chapter: "Unit 3", word: "よろし", reading: "よろし", meaning: "①悪くはない・すばらしい　②普通だ・たいしたことはない" },
+
+            // --- Stage 5 (No.41〜50) ---
+            { id: 41, chapter: "Unit 3", word: "ありがたし", reading: "ありがたし", meaning: "①めったにない・まれである・珍しい　②すばらしい" },
+            { id: 42, chapter: "Unit 3", word: "つきづきし", reading: "つきづきし", meaning: "①似つかわしい・ふさわしい" },
+            { id: 43, chapter: "Unit 3", word: "なまめかし", reading: "なまめかし", meaning: "①上品だ・優美である　②若々しい・みずみずしい" },
+            { id: 44, chapter: "Unit 3", word: "めでたし", reading: "めでたし", meaning: "①すばらしい・立派だ・すぐれている" },
+            { id: 45, chapter: "Unit 3", word: "うるはし", reading: "うるはし", meaning: "①きちんとしている・整っている・端正である　②美しい・見事だ" },
+            { id: 46, chapter: "Unit 4", word: "やむごとなし", reading: "やむごとなし", meaning: "①高貴だ・尊い　②格別だ・並々でない・優れている" },
+            { id: 47, chapter: "Unit 4", word: "おとなし", reading: "おとなし", meaning: "①大人らしい・大人びている　②思慮分別がある・落ち着いている　③穏やかだ・素直だ" },
+            { id: 48, chapter: "Unit 4", word: "ゆかし", reading: "ゆかし", meaning: "①見たい・聞きたい・知りたい・心ひかれる　②恋しい・なつかしい・慕わしい" },
+            { id: 49, chapter: "Unit 4", word: "なつかし", reading: "なつかし", meaning: "①親しみ深い・心ひかれる" },
+            { id: 50, chapter: "Unit 4", word: "はづかし", reading: "はづかし", meaning: "①恥ずかしい・きまりが悪い・気がひける　②立派だ・すぐれている" },
+
+            // --- Stage 6 (No.51〜60) ---
+            { id: 51, chapter: "Unit 4", word: "こころにくし", reading: "こころにくし", meaning: "①奥ゆかしい・上品だ・心ひかれる" },
+            { id: 52, chapter: "Unit 4", word: "うつくし", reading: "うつくし", meaning: "①かわいい・いとしい　②美しい" },
+            { id: 53, chapter: "Unit 4", word: "かなし", reading: "かなし", meaning: "①いとしい・かわいい　②悲しい・あわれだ・残念だ" },
+            { id: 54, chapter: "Unit 4", word: "らうたし", reading: "らうたし", meaning: "①かわいい・いじらしい" },
+            { id: 55, chapter: "Unit 4", word: "めやすし", reading: "めやすし", meaning: "①（見た目の）感じがよい・見苦しくない" },
+            { id: 56, chapter: "Unit 4", word: "あやし", reading: "あやし", meaning: "①不思議だ・神秘的だ　②身分が低い・卑しい　③粗末だ・みすぼらしい" },
+            { id: 57, chapter: "Unit 4", word: "くちをし", reading: "くちをし", meaning: "①残念だ・いやだ・なさけない" },
+            { id: 58, chapter: "Unit 4", word: "あたらし", reading: "あたらし", meaning: "①惜しい・もったいない・つまらない" },
+            { id: 59, chapter: "Unit 4", word: "むつかし", reading: "むつかし", meaning: "①不快だ・わずらわしい・うっとうしい　②気味が悪い・恐ろしい" },
+            { id: 60, chapter: "Unit 4", word: "つれなし", reading: "つれなし", meaning: "①平然としている・平気だ・素知らぬ顔をしている　②冷淡だ・薄情だ・無関心である" },
+
+            // --- Stage 7 (No.61〜70) ---
+            { id: 61, chapter: "Unit 5", word: "なめし", reading: "なめし", meaning: "①無礼だ・無作法だ" },
+            { id: 62, chapter: "Unit 5", word: "おどろおどろし", reading: "おどろおどろし", meaning: "①大げさだ・仰々しい　②気味が悪い・恐ろしい" },
+            { id: 63, chapter: "Unit 5", word: "憂し", reading: "うし", meaning: "①つらい・いやだ・憂鬱だ・憎い" },
+            { id: 64, chapter: "Unit 5", word: "びんなし", reading: "びんなし", meaning: "①不都合だ・具合が悪い　②気の毒だ・かわいそうだ" },
+            { id: 65, chapter: "Unit 5", word: "いとほし", reading: "いとほし", meaning: "①気の毒だ・かわいそうだ　②いとしい・かわいい・いじらしい" },
+            { id: 66, chapter: "Unit 5", word: "いはけなし", reading: "いはけなし", meaning: "①幼い・あどけない・子どもっぽい・幼稚である" },
+            { id: 67, chapter: "Unit 5", word: "さうざうし", reading: "さうざうし", meaning: "①もの足りない・さびしい・飽き足りない" },
+            { id: 68, chapter: "Unit 5", word: "すさまじ", reading: "すさまじ", meaning: "①興ざめだ・おもしろくない・魅力がない　②殺風景だ・寒々としている・荒涼としている" },
+            { id: 69, chapter: "Unit 5", word: "つらし", reading: "つらし", meaning: "①薄情だ・冷淡だ・思いやりがない　②つらい・耐えがたい" },
+            { id: 70, chapter: "Unit 5", word: "ところせし", reading: "ところせし", meaning: "①窮屈だ・仰々しい　②気詰まりだ" },
+
+            // --- Stage 8 (No.71〜80) ---
+            { id: 71, chapter: "Unit 5", word: "うしろめたし", reading: "うしろめたし", meaning: "①気がかりだ・不安だ・心もとない" },
+            { id: 72, chapter: "Unit 5", word: "わりなし", reading: "わりなし", meaning: "①道理に合わない・ひどい・無理やりだ　②しかたがない・どうしようもない　③苦しい・つらい・困っている" },
+            { id: 73, chapter: "Unit 5", word: "本意なし", reading: "ほいなし", meaning: "①不本意だ・残念だ・がっかりだ・物足りない" },
+            { id: 74, chapter: "Unit 5", word: "あさまし", reading: "あさまし", meaning: "①驚くほどだ・意外だ　②あきれるほどだ・がっかりだ　③情けない・嘆かわしい" },
+            { id: 75, chapter: "Unit 5", word: "めざまし", reading: "めざまし", meaning: "①気にくわない・目障りだ　②すばらしい・立派だ・目が覚めるほどすばらしい" },
+            { id: 76, chapter: "Unit 6", word: "いみじ", reading: "いみじ", meaning: "①とてもよい・素晴らしい・立派だ　②とても悪い・ひどい・恐ろしい　③とても・甚だしく" },
+            { id: 77, chapter: "Unit 6", word: "ゆゆし", reading: "ゆゆし", meaning: "①不吉だ・縁起が悪い・気味が悪い・恐ろしい　②とてもよい・すばらしい　③とても・甚だしく" },
+            { id: 78, chapter: "Unit 6", word: "やさし", reading: "やさし", meaning: "①恥ずかしい・きまり悪い　②優美だ・上品だ・風流だ　③けなげだ・殊勝だ・感心だ" },
+            { id: 79, chapter: "Unit 6", word: "しるし", reading: "しるし", meaning: "①はっきりとわかる・顕著だ　②〜のとおりに・予想通りだ" },
+            { id: 80, chapter: "Unit 6", word: "とし", reading: "とし", meaning: "①早い・速い" },
+
+            // --- Stage 9 (No.81〜90) ---
+            { id: 81, chapter: "Unit 6", word: "ゆくりなし", reading: "ゆくりなし", meaning: "①突然だ・思いがけない" },
+            { id: 82, chapter: "Unit 6", word: "おぼつかなし", reading: "おぼつかなし", meaning: "①はっきりしない・ぼんやりしている　②気がかりだ・不安だ・疑わしい　③待ち遠しい・じれったい" },
+            { id: 83, chapter: "Unit 6", word: "心もとなし", reading: "こころもとなし", meaning: "①はっきりしない・かすかだ　②気がかりだ・不安だ　③待ち遠しい・じれったい" },
+            { id: 84, chapter: "Unit 6", word: "あはれなり", reading: "あはれなり", meaning: "①しみじみと心に深く感じられる" },
+            { id: 85, chapter: "Unit 6", word: "つれづれなり", reading: "つれづれなり", meaning: "①退屈である　②ものさびしい" },
+            { id: 86, chapter: "Unit 6", word: "すずろなり・そぞろなり", reading: "すずろなり・そぞろなり", meaning: "①なんということもない　②思いがけない　③むやみやたらだ" },
+            { id: 87, chapter: "Unit 6", word: "まめなり・まめやかなり", reading: "まめなり・まめやかなり", meaning: "①まじめである・誠実である　②実用的である・実際的なさま" },
+            { id: 88, chapter: "Unit 6", word: "あだなり", reading: "あだなり", meaning: "①はかない・頼りにならない・もろい　②誠実さがない・浮ついている・浮気だ" },
+            { id: 89, chapter: "Unit 6", word: "いたづらなり", reading: "いたづらなり", meaning: "①役に立たない・むだだ・かいがない　②むなしい・はかない" },
+            { id: 90, chapter: "Unit 6", word: "優なり", reading: "いうなり", meaning: "①優れている・すばらしく立派だ　②上品で美しい・優雅である" },
+
+            // --- Stage 10 (No.91〜100) ---
+            { id: 91, chapter: "Unit 7", word: "あてなり", reading: "あてなり", meaning: "①高貴である・身分が高い　②気品がある・上品である" },
+            { id: 92, chapter: "Unit 7", word: "あからさまなり", reading: "あからさまなり", meaning: "①ほんのちょっと・一時的に　②ほんの・少しも・まったく" },
+            { id: 93, chapter: "Unit 7", word: "みそかなり", reading: "みそかなり", meaning: "①ひそかに・こっそりと" },
+            { id: 94, chapter: "Unit 7", word: "おろかなり", reading: "おろかなり", meaning: "①いい加減だ・疎略だ　②並ひととおりだ　③〜という言葉では言い表せない" },
+            { id: 95, chapter: "Unit 7", word: "をこなり", reading: "をこなり", meaning: "①愚かだ・まぬけだ・ばかばかしい" },
+            { id: 96, chapter: "Unit 7", word: "むげなり", reading: "むげなり", meaning: "①ひどい・最低だ・最悪だ　②むやみに・ひどく　③身分が低い" },
+            { id: 97, chapter: "Unit 7", word: "なかなかなり", reading: "なかなかなり", meaning: "①中途半端だ・不十分だ　②かえってしないほうがよい・なまじっか" },
+            { id: 98, chapter: "Unit 7", word: "消息", reading: "せうそこ", meaning: "①手紙　②訪問の申し入れ・訪問のあいさつ" },
+            { id: 99, chapter: "Unit 7", word: "手", reading: "て", meaning: "①文字・筆跡　②演奏法・曲　③手段・方法・やり方　④傷・負傷" },
+            { id: 100, chapter: "Unit 7", word: "文", reading: "ふみ", meaning: "①手紙　②漢詩・漢文・漢字" },
+
+            // --- Stage 11 (No.101〜110) ---
+            { id: 101, chapter: "Unit 7", word: "あそび", reading: "あそび", meaning: "①遊び　②管弦の遊び" },
+            { id: 102, chapter: "Unit 7", word: "うへ", reading: "うへ", meaning: "①帝・天皇　②奥様　③〜のこと" },
+            { id: 103, chapter: "Unit 7", word: "おほやけ", reading: "おほやけ", meaning: "①朝廷・政府　②帝　③公的なこと" },
+            { id: 104, chapter: "Unit 7", word: "うち", reading: "うち", meaning: "①内部　②宮中・内裏　③帝・天皇" },
+            { id: 105, chapter: "Unit 7", word: "御前", reading: "おまへ", meaning: "①御前・お側　②貴人への敬称" },
+            { id: 106, chapter: "Unit 8", word: "みゆき", reading: "みゆき", meaning: "①（帝や上皇の）お出かけ・お出まし" },
+            { id: 107, chapter: "Unit 8", word: "たより", reading: "たより", meaning: "①生活のよりどころ・頼みにできるもの　②つて・縁故・手づる　③よい機会・ついで" },
+            { id: 108, chapter: "Unit 8", word: "物語", reading: "ものがたり", meaning: "①世間話・雑談　②物語" },
+            { id: 109, chapter: "Unit 8", word: "ためし", reading: "ためし", meaning: "①前例・先例" },
+            { id: 110, chapter: "Unit 8", word: "いそぎ", reading: "いそぎ", meaning: "①急なこと・急用　②支度・準備" },
+
+            // --- Stage 12 (No.111〜120) ---
+            { id: 111, chapter: "Unit 8", word: "用意", reading: "ようい", meaning: "①気配り・心遣い・配慮　②容貌・顔立ち" },
+            { id: 112, chapter: "Unit 8", word: "かたち", reading: "かたち", meaning: "①形・外見・外形　②容貌・顔立ち" },
+            { id: 113, chapter: "Unit 8", word: "かげ", reading: "かげ", meaning: "①形・外見・姿　②陰・物陰" },
+            { id: 114, chapter: "Unit 8", word: "けしき", reading: "けしき", meaning: "①様子・ありさま　②顔色・機嫌・態度・そぶり　③意向・意中・内意" },
+            { id: 115, chapter: "Unit 8", word: "こころざし", reading: "こころざし", meaning: "①意志・意向・心が向かうところ　②愛情・好意・誠意　③お礼の贈り物・謝礼" },
+            { id: 116, chapter: "Unit 8", word: "本意", reading: "ほい", meaning: "①本来の意志・かねてからの願い" },
+            { id: 117, chapter: "Unit 8", word: "こと", reading: "こと", meaning: "①言葉・言語　②和歌" },
+            { id: 118, chapter: "Unit 8", word: "わざ", reading: "わざ", meaning: "①こと（事）・行い　②葬儀・法事" },
+            { id: 119, chapter: "Unit 8", word: "よろづ", reading: "よろづ", meaning: "①多くの数・さまざま・万事　②何ごとにつけても・すべてにわたって" },
+            { id: 120, chapter: "Unit 8", word: "ことわり", reading: "ことわり", meaning: "①道理・筋道" },
+
+            // --- Stage 13 (No.121〜130) ---
+            { id: 121, chapter: "Unit 9", word: "ひがこと・ひがごと", reading: "ひがこと・ひがごと", meaning: "①間違い・誤り" },
+            { id: 122, chapter: "Unit 9", word: "そらごと", reading: "そらごと", meaning: "①嘘・偽り・作りごと" },
+            { id: 123, chapter: "Unit 9", word: "しるし", reading: "しるし", meaning: "①効き目・効果　②霊験・ご利益　③前兆・きざし" },
+            { id: 124, chapter: "Unit 9", word: "料", reading: "れう", meaning: "①ため・（何かの）ためのもの" },
+            { id: 125, chapter: "Unit 9", word: "禄", reading: "ろく", meaning: "①ほうび" },
+            { id: 126, chapter: "Unit 9", word: "としごろ", reading: "としごろ", meaning: "①数年・数年来・長年" },
+            { id: 127, chapter: "Unit 9", word: "つとめて", reading: "つとめて", meaning: "①早朝・朝　②翌朝" },
+            { id: 128, chapter: "Unit 9", word: "世・世の中", reading: "よ・よのなか", meaning: "①世の中・世間　②人間関係・男女の仲・夫婦の仲　③一生・御代" },
+            { id: 129, chapter: "Unit 9", word: "いかで・いかでか", reading: "いかで・いかでか", meaning: "①どうして・どのように〜だろうか　②どうして〜だろうか、いや、〜ない　③なんとかして" },
+            { id: 130, chapter: "Unit 9", word: "いかが・いかに", reading: "いかが・いかに", meaning: "①どのように・どうして〜だろうか　②どうして〜だろうか、いや〜ない　③どんなにか・どれほど" },
+
+            // --- Stage 14 (No.131〜140) ---
+            { id: 131, chapter: "Unit 9", word: "など・などか・などて", reading: "など・などか・などて", meaning: "①なぜ・どうして〜か" },
+            { id: 132, chapter: "Unit 9", word: "いつしか", reading: "いつしか", meaning: "①いつの間にか・早くも　②（できるだけ）早く" },
+            { id: 133, chapter: "Unit 9", word: "おのづから", reading: "おのづから", meaning: "①自然と・ひとりで　②偶然・たまたま　③万一・もしかして" },
+            { id: 134, chapter: "Unit 9", word: "なほ", reading: "なほ", meaning: "①依然としてやはり　②なんといってもやはり・それでもやはり　③さらに・いっそう・ますます" },
+            { id: 135, chapter: "Unit 9", word: "いとど", reading: "いとど", meaning: "①いっそう・ますます　②そのうえさらに・ただでさえ・そうでなくとも" },
+            { id: 136, chapter: "Unit 10", word: "げに", reading: "げに", meaning: "①本当に・なるほど" },
+            { id: 137, chapter: "Unit 10", word: "かく", reading: "かく", meaning: "①こう・このように" },
+            { id: 138, chapter: "Unit 10", word: "さ", reading: "さ", meaning: "①そう・そのように" },
+            { id: 139, chapter: "Unit 10", word: "しか", reading: "しか", meaning: "①そう・そのように" },
+            { id: 140, chapter: "Unit 10", word: "と", reading: "と", meaning: "①そのように・あのように" },
+
+            // --- Stage 15 (No.141〜150) ---
+            { id: 141, chapter: "Unit 10", word: "やがて", reading: "やがて", meaning: "①そのまま・引き続いて　②すぐに・すぐさま・ただちに" },
+            { id: 142, chapter: "Unit 10", word: "すなはち", reading: "すなはち", meaning: "①すぐに・ただちに・即刻　②つまり・言い換えれば" },
+            { id: 143, chapter: "Unit 10", word: "やうやう", reading: "やうやう", meaning: "①しだいに・だんだんと　②やっと・かろうじて" },
+            { id: 144, chapter: "Unit 10", word: "やをら・やはら", reading: "やをら・やはら", meaning: "①そっと・静かに・おもむろに" },
+            { id: 145, chapter: "Unit 10", word: "なかなか（に）", reading: "なかなか", meaning: "①なまじ・なまじっか　②かえって・むしろ" },
+            { id: 146, chapter: "Unit 10", word: "さすがに", reading: "さすがに", meaning: "①そうはいってもやはり　②なんといってもやはり" },
+            { id: 147, chapter: "Unit 10", word: "かたみに", reading: "かたみに", meaning: "①お互いに・かわるがわる" },
+            { id: 148, chapter: "Unit 10", word: "うたて", reading: "うたて", meaning: "①不快に・いやな感じに　②気味悪く・異様に妖しく　③情けない・いやだ" },
+            { id: 149, chapter: "Unit 10", word: "なべて", reading: "なべて", meaning: "①一般に・すべて・みな同様に　②並一通り・普通・平凡" },
+            { id: 150, chapter: "Unit 10", word: "わざと", reading: "わざと", meaning: "①わざわざ　②特に・とりわけ・格別に　③正式な・本格的な" },
+
+            // --- Stage 16 (No.151〜160) ---
+            { id: 151, chapter: "Unit 11", word: "あまた", reading: "あまた", meaning: "①たくさん・数多く" },
+            { id: 152, chapter: "Unit 11", word: "ここら・そこら", reading: "ここら・そこら", meaning: "①たくさん・数多く　②たいそう・はなはだしく" },
+            { id: 153, chapter: "Unit 11", word: "え", reading: "え", meaning: "①（打消を伴って）〜することができない" },
+            { id: 154, chapter: "Unit 11", word: "な〜そ", reading: "な〜そ", meaning: "①〜するな・〜しないでくれ・〜してはならない" },
+            { id: 155, chapter: "Unit 11", word: "おほかた", reading: "おほかた", meaning: "①まったく・少しも・決して（〜ない）　②だいたい・概して" },
+            { id: 156, chapter: "Unit 11", word: "さらに", reading: "さらに", meaning: "①まったく・少しも・決して（〜ない）　②実に" },
+            { id: 157, chapter: "Unit 11", word: "世に", reading: "よに", meaning: "①まったく・少しも・決して（〜ない）　②実に・非常に" },
+            { id: 158, chapter: "Unit 11", word: "絶えて", reading: "たえて", meaning: "①まったく・少しも・決して（〜ない）" },
+            { id: 159, chapter: "Unit 11", word: "つゆ", reading: "つゆ", meaning: "①まったく・少しも・決して（〜ない）" },
+            { id: 160, chapter: "Unit 11", word: "ゆめ・ゆめゆめ", reading: "ゆめ・ゆめゆめ", meaning: "①まったく・少しも・決して（〜ない）　②決して（〜するな）" },
+
+            // --- Stage 17 (No.161〜170) ---
+            { id: 161, chapter: "Unit 11", word: "つやつや", reading: "つやつや", meaning: "①まったく・少しも・決して（〜ない）" },
+            { id: 162, chapter: "Unit 11", word: "をさをさ", reading: "をさをさ", meaning: "①ほとんど（〜ない）" },
+            { id: 163, chapter: "Unit 11", word: "よも", reading: "よも", meaning: "①まさか（〜ないだろう）" },
+            { id: 164, chapter: "Unit 11", word: "あなかしこ", reading: "あなかしこ", meaning: "①決して（〜するな）" },
+            { id: 165, chapter: "Unit 11", word: "ためらふ", reading: "ためらふ", meaning: "①気持ちを静める・体を休める・病勢を落ち着かせる　②迷ってぐずぐずする・躊躇する・ためらう" },
+            { id: 166, chapter: "Unit 12", word: "やすらふ", reading: "やすらふ", meaning: "①気持ちを静める・身体を休める・病勢を落ち着かせる　②迷ってぐずぐずする・躊躇する・ためらう" },
+            { id: 167, chapter: "Unit 12", word: "かたらふ", reading: "かたらふ", meaning: "①親しく語る・語り合う　②立ち止まる・休息する　③契る・夫婦の関係を結ぶ　④相談する・仲間に引き入れる" },
+            { id: 168, chapter: "Unit 12", word: "住む", reading: "すむ", meaning: "①住む　②（女のもとに）通う・通ってともに暮らす" },
+            { id: 169, chapter: "Unit 12", word: "やむ", reading: "やむ", meaning: "①そのままになる・終わる　②気持がおさまる・なおる" },
+            { id: 170, chapter: "Unit 12", word: "うつろふ", reading: "うつろふ", meaning: "①移り行く　②変わってゆく・色あせる　③心変わりする" },
+
+            // --- Stage 18 (No.171〜180) ---
+            { id: 171, chapter: "Unit 12", word: "見出だす", reading: "みいだす", meaning: "①外を見る　②見つけ出す" },
+            { id: 172, chapter: "Unit 12", word: "もてなす", reading: "もてなす", meaning: "①振る舞う　②処理する・待遇する・取り扱う・世話をする　③もてはやす・大切にする・優遇する" },
+            { id: 173, chapter: "Unit 12", word: "あつかふ", reading: "あつかふ", meaning: "①面倒を見る・世話をする・看病する　②もてあます" },
+            { id: 174, chapter: "Unit 12", word: "あくがる", reading: "あくがる", meaning: "①さまよう・うわの空になる　②さまよい歩く・浮かれ出る" },
+            { id: 175, chapter: "Unit 12", word: "あふ", reading: "あふ", meaning: "①結婚する・男女が契る　②たえられない・我慢できない　③〜しきれない　④かまわないだろう" },
+            { id: 176, chapter: "Unit 12", word: "しほたる", reading: "しほたる", meaning: "①涙を流す・涙で袖が濡れる" },
+            { id: 177, chapter: "Unit 12", word: "かきくらす", reading: "かきくらす", meaning: "①空を暗くする・あたり一面を暗くする　②心を暗くする・悲しみにくれる" },
+            { id: 178, chapter: "Unit 12", word: "まどふ", reading: "まどふ", meaning: "①迷う・悩む・途方にくれる・うろたえる・心が乱れる　②ひどく〜する" },
+            { id: 179, chapter: "Unit 12", word: "たばかる", reading: "たばかる", meaning: "①考えをめぐらす・工夫する　②だます・たくらむ" },
+            { id: 180, chapter: "Unit 12", word: "すさぶ", reading: "すさぶ", meaning: "①興じる・楽しむ・気の向くまま　②（なにかを）する・慰みに（なにかを）する" },
+
+            // --- Stage 19 (No.181〜190) ---
+            { id: 181, chapter: "Unit 13", word: "すまふ", reading: "すまふ", meaning: "①抵抗する・争う・さからう　②辞退する・断る・いやがる" },
+            { id: 182, chapter: "Unit 13", word: "まねぶ", reading: "まねぶ", meaning: "①まねる　②伝える・書き記す・学習する" },
+            { id: 183, chapter: "Unit 13", word: "ねぶ", reading: "ねぶ", meaning: "①年をとる・成長する・ふける　②大人びる・ませる" },
+            { id: 184, chapter: "Unit 13", word: "おきつ", reading: "おきつ", meaning: "①指図する・命令する　②計画する・決めておく・処理する　③取り扱う・取り計らう" },
+            { id: 185, chapter: "Unit 13", word: "うれふ", reading: "うれふ", meaning: "①訴える・不平を言う" },
+            { id: 186, chapter: "Unit 13", word: "むすぶ", reading: "むすぶ", meaning: "①作る・できる　②契る・約束する・安否を問う　③（水などを）すくう" },
+            { id: 187, chapter: "Unit 13", word: "とぶらふ", reading: "とぶらふ", meaning: "①訪ねる・尋ねる・探し求める　②見舞う　③弔う・供養する" },
+            { id: 188, chapter: "Unit 13", word: "やつす", reading: "やつす", meaning: "①目立たない服装にする・質素にする・みすぼらしくする　②出家する" },
+            { id: 189, chapter: "Unit 13", word: "さはる", reading: "さはる", meaning: "①差し障る・差し支える・妨げられる" },
+            { id: 190, chapter: "Unit 13", word: "かしこまる", reading: "かしこまる", meaning: "①恐縮する・恐縮して正座する・お礼を申し上げる・謹慎する" },
+
+            // --- Stage 20 (No.191〜200) ---
+            { id: 191, chapter: "Unit 13", word: "かこつ", reading: "かこつ", meaning: "①嘆く・不平を言う" },
+            { id: 192, chapter: "Unit 13", word: "わく", reading: "わく", meaning: "①分ける・区別する　②理解する・識別する" },
+            { id: 193, chapter: "Unit 13", word: "つつむ", reading: "つつむ", meaning: "①遠慮する・はばかる" },
+            { id: 194, chapter: "Unit 13", word: "あらまほし", reading: "あらまほし", meaning: "①理想的だ・望ましい" },
+            { id: 195, chapter: "Unit 13", word: "らうらうじ", reading: "らうらうじ", meaning: "①巧みだ・もの慣れている・気がきいている・配慮が行き届いている　②上品だ・うつくしい" },
+            { id: 196, chapter: "Unit 14", word: "うるせし", reading: "うるせし", meaning: "①賢い・優れている　②巧みだ・優れている" },
+            { id: 197, chapter: "Unit 14", word: "はかばかし", reading: "はかばかし", meaning: "①しっかりしている・きちんとしている　②はっきりしている" },
+            { id: 198, chapter: "Unit 14", word: "をさをさし", reading: "をさをさし", meaning: "①しっかりしている　②大人びている" },
+            { id: 199, chapter: "Unit 14", word: "さうなし", reading: "さうなし", meaning: "①比べるものがない・すばらしい" },
+            { id: 200, chapter: "Unit 14", word: "くまなし", reading: "くまなし", meaning: "①暗いところがない・影がない　②何でも知っている・行きとどいている" },
+
+            // --- Stage 21 (No.201〜210) ---
+            { id: 201, chapter: "Unit 14", word: "ずちなし", reading: "ずちなし", meaning: "①どうしようもない・手のうちようがない・困り果てる" },
+            { id: 202, chapter: "Unit 14", word: "さがなし", reading: "さがなし", meaning: "①意地が悪い・口やかましい　②いたずらだ" },
+            { id: 203, chapter: "Unit 14", word: "あいなし", reading: "あいなし", meaning: "①気に入らない・つまらない・不都合である　②なんとなく・わけもなく・むやみに" },
+            { id: 204, chapter: "Unit 14", word: "まさなし", reading: "まさなし", meaning: "①よくない・見苦しい・常識はずれである　②予想外だ・思いもかけない・びっくりだ" },
+            { id: 205, chapter: "Unit 14", word: "はかなし", reading: "はかなし", meaning: "①頼りない・むなしい・はかない　②ちょっとしたことだ・取るに足りない・たわいない" },
+            { id: 206, chapter: "Unit 14", word: "こころづきなし", reading: "こころづきなし", meaning: "①気にくわない・好感がもてない・心ひかれない" },
+            { id: 207, chapter: "Unit 14", word: "あへなし", reading: "あへなし", meaning: "①期待はずれだ・落胆している・張り合いがない　②はかない・どうしようもない" },
+            { id: 208, chapter: "Unit 14", word: "おほけなし", reading: "おほけなし", meaning: "①身のほど知らずだ・分不相応だ・おそれ多い" },
+            { id: 209, chapter: "Unit 14", word: "よしなし", reading: "よしなし", meaning: "①理由がない　②方法がない　③つまらない・意味がない　④関係がない・縁がない" },
+            { id: 210, chapter: "Unit 14", word: "はしたなし", reading: "はしたなし", meaning: "①中途半端だ・どっちつかずだ　②みっともない・きまり悪い　③そっけない・愛想がない　④はなはだしい" },
+
+            // --- Stage 22 (No.211〜220) ---
+            { id: 211, chapter: "Unit 15", word: "しどけなし", reading: "しどけなし", meaning: "①だらしない・乱れている・怠慢だ　②無造作だ・くつろいでいる・気楽だ・ゆったりしている" },
+            { id: 212, chapter: "Unit 15", word: "いぎたなし", reading: "いぎたなし", meaning: "①寝坊だ・ぐっすり寝込んでいる" },
+            { id: 213, chapter: "Unit 15", word: "ひとわろし", reading: "ひとわろし", meaning: "①みっともない・体裁が悪い" },
+            { id: 214, chapter: "Unit 15", word: "いぶせし", reading: "いぶせし", meaning: "①うっとうしい・気が晴れない・不快だ　②気がかりだ・気になる" },
+            { id: 215, chapter: "Unit 15", word: "かたはらいたし", reading: "かたはらいたし", meaning: "①苦々しい・腹立たしい・見苦しい・みっともない　②気の毒だ・心苦しい　③きまり悪い・恥ずかしい" },
+            { id: 216, chapter: "Unit 15", word: "こちたし", reading: "こちたし", meaning: "①うるさい・煩わしい　②大げさだ・仰々しい　③非常に多い・はなはだしい・おびただしい" },
+            { id: 217, chapter: "Unit 15", word: "かしこし", reading: "かしこし", meaning: "①おそれ多い・もったいない・尊い　②賢い・優れている・立派だ　③都合がよい・運がよい　④はなはだしく" },
+            { id: 218, chapter: "Unit 15", word: "けし", reading: "けし", meaning: "①異様だ・変だ・よくない　②不誠実だ・とがめるべきだ" },
+            { id: 219, chapter: "Unit 15", word: "わびし", reading: "わびし", meaning: "①つらい・苦しい・やりきれない・困ったことだ　②わびしい・心細い・貧しい" },
+            { id: 220, chapter: "Unit 15", word: "こころぐるし", reading: "こころぐるし", meaning: "①気の毒だ・かわいそうだ・つらい　②気がかりだ・心配だ" },
+
+            // --- Stage 23 (No.221〜230) ---
+            { id: 221, chapter: "Unit 15", word: "まだし", reading: "まだし", meaning: "①まだ早い・まだその時期ではない・未熟だ" },
+            { id: 222, chapter: "Unit 15", word: "さかし", reading: "さかし", meaning: "①賢い・優れている・巧みだ　②しっかりしている・気丈だ　③利口ぶっている・こざかしい" },
+            { id: 223, chapter: "Unit 15", word: "まばゆし", reading: "まばゆし", meaning: "①まぶしい　②美しい・立派だ・すばらしい　③きまりが悪い・恥ずかしい" },
+            { id: 224, chapter: "Unit 15", word: "かたじけなし", reading: "かたじけなし", meaning: "①おそれ多い・申し訳ない　②おそれ多い・もったいない・ありがたい　③恥ずかしい・面目ない" },
+            { id: 225, chapter: "Unit 15", word: "ねたし", reading: "ねたし", meaning: "①くやしい・しゃくだ・にくらしい　②妬ましいほど立派だ・すぐれている" },
+            { id: 226, chapter: "Unit 16", word: "しげし", reading: "しげし", meaning: "①（何かが）多い・たくさんある　②しきりに・絶え間ない・忙しい" },
+            { id: 227, chapter: "Unit 16", word: "すごし", reading: "すごし", meaning: "①気味が悪い・ぞっとするほど恐ろしい　②さびしい・殺風景だ　③すばらしい・うつくしい" },
+            { id: 228, chapter: "Unit 16", word: "いたし", reading: "いたし", meaning: "①とてもよい・すばらしい　②とても悪い・ひどい　③とても・はなはだしく　④それほど・あまり" },
+            { id: 229, chapter: "Unit 16", word: "おぼろけなり", reading: "おぼろけなり", meaning: "①並ひととおりだ・ありきたりだ　②並ひととおりではない・格別だ" },
+            { id: 230, chapter: "Unit 16", word: "なのめなり", reading: "なのめなり", meaning: "①並ひととおりだ・普通だ・平凡だ　②不十分だ・いい加減だ　③並ひととおりでない・格別だ" },
+
+            // --- Stage 24 (No.231〜240) ---
+            { id: 231, chapter: "Unit 16", word: "清らなり・けうらなり", reading: "きよらなり・けうらなり", meaning: "①清らかで美しい　②きちんとしている・整っていて美しい" },
+            { id: 232, chapter: "Unit 16", word: "まほなり", reading: "まほなり", meaning: "①欠点がなくすぐれている・完全である　②まともであるさま" },
+            { id: 233, chapter: "Unit 16", word: "あらはなり", reading: "あらはなり", meaning: "①はっきり見える・まる見えである　②明らかである・露骨である" },
+            { id: 234, chapter: "Unit 16", word: "あながちなり", reading: "あながちなり", meaning: "①強引だ・無理やりだ・いちずだ　②むやみに・あまりに" },
+            { id: 235, chapter: "Unit 16", word: "せちなり", reading: "せちなり", meaning: "①切実である・ひたすらだ　②大切である・さしせまっている" },
+            { id: 236, chapter: "Unit 16", word: "とみなり", reading: "とみなり", meaning: "①急だ" },
+            { id: 237, chapter: "Unit 16", word: "うちつけなり", reading: "うちつけなり", meaning: "①急だ・突然だ・にわかだ　②軽率だ・考えが浅い・場当たりだ" },
+            { id: 238, chapter: "Unit 16", word: "さらなり", reading: "さらなり", meaning: "①言うまでもない・もちろんだ" },
+            { id: 239, chapter: "Unit 16", word: "ねんごろなり・ねむごろなり", reading: "ねんごろなり・ねむごろなり", meaning: "①心をこめて丁寧だ・熱心だ　②親密だ・仲むつまじい" },
+            { id: 240, chapter: "Unit 16", word: "おいらかなり", reading: "おいらかなり", meaning: "①穏やかだ・おっとりしている　②率直である・素直である" },
+
+            // --- Stage 25 (No.241〜250) ---
+            { id: 241, chapter: "Unit 17", word: "あやにくなり", reading: "あやにくなり", meaning: "①意地が悪い・にくらしいほどひどい　②都合が悪い・間が悪い・あいにくだ" },
+            { id: 242, chapter: "Unit 17", word: "おぼえ", reading: "おぼえ", meaning: "①評判・人望・うわさ・評論　②寵愛・信任" },
+            { id: 243, chapter: "Unit 17", word: "ひま", reading: "ひま", meaning: "①間・すき間　②絶え間・合間　③時間的ゆとり・暇・自由な時間" },
+            { id: 244, chapter: "Unit 17", word: "いとま", reading: "いとま", meaning: "①時間的ゆとり・暇・余裕　②休むこと・勤めをやめること・休暇　③別れること" },
+            { id: 245, chapter: "Unit 17", word: "才", reading: "ざえ", meaning: "①教養・学才・学問　②技能・才能・美術" },
+            { id: 246, chapter: "Unit 17", word: "よろこび", reading: "よろこび", meaning: "①喜び・お祝い　②お礼" },
+            { id: 247, chapter: "Unit 17", word: "こころばへ", reading: "こころばへ", meaning: "①気立て・性質　②心遣い・気配り　③趣・風情・趣意" },
+            { id: 248, chapter: "Unit 17", word: "こころづくし", reading: "こころづくし", meaning: "①もの思いをすること　②気をもむこと・心労の多いこと" },
+            { id: 249, chapter: "Unit 17", word: "そこ", reading: "そこ", meaning: "①あなた（二人称）" },
+            { id: 250, chapter: "Unit 17", word: "ここ", reading: "ここ", meaning: "①このわたし（一人称）　②あなた（二人称）" },
+
+            // --- Stage 26 (No.251〜260) ---
+            { id: 251, chapter: "Unit 17", word: "かれ", reading: "かれ", meaning: "①あの人　②あれ・あのもの" },
+            { id: 252, chapter: "Unit 17", word: "それ", reading: "それ", meaning: "①その人　②あなた（二人称）" },
+            { id: 253, chapter: "Unit 17", word: "これ", reading: "これ", meaning: "①この人　②このわたし（一人称）　③あなた（二人称）" },
+            { id: 254, chapter: "Unit 17", word: "あなた", reading: "あなた", meaning: "①あちら・こちら" },
+            { id: 255, chapter: "Unit 17", word: "そなた", reading: "そなた", meaning: "①そちら・その方面　②あなた・お前" },
+            { id: 256, chapter: "Unit 18", word: "こなた", reading: "こなた", meaning: "①こちら・こっち　②このわたし（一人称）" },
+            { id: 257, chapter: "Unit 18", word: "そのかみ", reading: "そのかみ", meaning: "①その当時・その昔・往時" },
+            { id: 258, chapter: "Unit 18", word: "せうと", reading: "せうと", meaning: "①兄・弟" },
+            { id: 259, chapter: "Unit 18", word: "おとうと・おとと", reading: "おとうと・おとと", meaning: "①弟・妹" },
+            { id: 260, chapter: "Unit 18", word: "いも", reading: "いも", meaning: "①いとしいあなた（妻・恋人）" },
+
+            // --- Stage 27 (No.261〜270) ---
+            { id: 261, chapter: "Unit 18", word: "つま", reading: "つま", meaning: "①夫・妻" },
+            { id: 262, chapter: "Unit 18", word: "はらから", reading: "はらから", meaning: "①兄弟・姉妹" },
+            { id: 263, chapter: "Unit 18", word: "かたへ", reading: "かたへ", meaning: "①片方・半分・一部分　②側・傍ら・そば・身近　③仲間・同僚・兄弟" },
+            { id: 264, chapter: "Unit 18", word: "ほど", reading: "ほど", meaning: "①間・うち・時・ころ　②距離・広さ・あたり　③身分地位・年齢　④様子・ありさま" },
+            { id: 265, chapter: "Unit 18", word: "かぎり", reading: "かぎり", meaning: "①限度・限界・期限　②時期・機会・あいだ　③最後・臨終　④全部・すべて" },
+            { id: 266, chapter: "Unit 18", word: "きは", reading: "きは", meaning: "①端・限り・終わり・限界　②程度・身分" },
+            { id: 267, chapter: "Unit 18", word: "ついで", reading: "ついで", meaning: "①序列・順序　②機会・折・場合" },
+            { id: 268, chapter: "Unit 18", word: "沙汰", reading: "さた", meaning: "①評議・裁き・処置　②命令・指図　③評判・うわさ" },
+            { id: 269, chapter: "Unit 18", word: "とが", reading: "とが", meaning: "①欠点・短所　②過失・罪" },
+            { id: 270, chapter: "Unit 18", word: "け", reading: "け", meaning: "①ゆえ・ため・せい" },
+
+            // --- Stage 28 (No.271〜280) ---
+            { id: 271, chapter: "Unit 19", word: "よし", reading: "よし", meaning: "①趣・風情・いきさつ　②由緒・由来・理由　③手段・方法・手立て　④こと・旨" },
+            { id: 272, chapter: "Unit 19", word: "やう", reading: "やう", meaning: "①様子・ありさま・姿　②理由・わけ・事情　③方法・手段・やり方　④〜ことには" },
+            { id: 273, chapter: "Unit 19", word: "ちぎり", reading: "ちぎり", meaning: "①約束・契約　②前世からの約束・因縁・宿縁" },
+            { id: 274, chapter: "Unit 19", word: "ほだし", reading: "ほだし", meaning: "①束縛するもの・障害となるもの" },
+            { id: 275, chapter: "Unit 19", word: "あやめ", reading: "あやめ", meaning: "①（物の）模様・形・区別　②（ものごとの）道理・筋道・分別" },
+            { id: 276, chapter: "Unit 19", word: "うつつ", reading: "うつつ", meaning: "①現実　②正気" },
+            { id: 277, chapter: "Unit 19", word: "あるじ", reading: "あるじ", meaning: "①主人・主君　②饗応・もてなし・接待" },
+            { id: 278, chapter: "Unit 19", word: "ふるさと", reading: "ふるさと", meaning: "①なじみの土地・生まれ故郷　②わが家・自宅　③旧都" },
+            { id: 279, chapter: "Unit 19", word: "さて", reading: "さて", meaning: "①そういう状態で・そのまま・そうして　②それ以外・そのほか" },
+            { id: 280, chapter: "Unit 19", word: "さながら", reading: "さながら", meaning: "①そのまま・もとのまま　②すべて・ことごとく・全部" },
+
+            // --- Stage 29 (No.281〜290) ---
+            { id: 281, chapter: "Unit 19", word: "いま", reading: "いま", meaning: "①まもなく・すぐに　②さらに・もう" },
+            { id: 282, chapter: "Unit 19", word: "せめて", reading: "せめて", meaning: "①無理に・強いて　②痛切に・切実に・ひどく" },
+            { id: 283, chapter: "Unit 19", word: "むべ・うべ", reading: "むべ・うべ", meaning: "①なるほど・いかにも" },
+            { id: 284, chapter: "Unit 19", word: "かつ", reading: "かつ", meaning: "①一方では　②すぐに・たちまち" },
+            { id: 285, chapter: "Unit 19", word: "ひねもす", reading: "ひねもす", meaning: "①一日中・朝から晩まで" },
+            { id: 286, chapter: "Unit 20", word: "かまへて", reading: "かまへて", meaning: "①決して・絶対に（〜ない・〜するな）　②きっと・必ず・なんとかして" },
+            { id: 287, chapter: "Unit 20", word: "あへて", reading: "あへて", meaning: "①まったく・少しも・決して（〜ない）" },
+            { id: 288, chapter: "Unit 20", word: "かけて", reading: "かけて", meaning: "①まったく・少しも・決して（〜ない）" },
+            { id: 289, chapter: "Unit 20", word: "さだめて", reading: "さだめて", meaning: "①きっと・必ず（〜だろう）" },
+            { id: 290, chapter: "Unit 20", word: "のたまふ", reading: "のたまふ", meaning: "①おっしゃる" },
+
+            // --- Stage 30 (No.291〜300) ---
+            { id: 291, chapter: "Unit 20", word: "仰す", reading: "おほす", meaning: "①おっしゃる　②命令する・御命じになる・命令なさる" },
+            { id: 292, chapter: "Unit 20", word: "聞こゆ", reading: "きこゆ", meaning: "①申し上げる　②〜申し上げる" },
+            { id: 293, chapter: "Unit 20", word: "申す", reading: "まうす", meaning: "①申し上げる　②〜申し上げる・〜してさしあげる" },
+            { id: 294, chapter: "Unit 20", word: "奏す", reading: "そうす", meaning: "①（帝に）申し上げる　②演奏する・奏でる" },
+            { id: 295, chapter: "Unit 20", word: "啓す", reading: "けいす", meaning: "①（中宮・東宮に）申し上げる・言上する" },
+            { id: 296, chapter: "Unit 20", word: "承る", reading: "うけたまはる", meaning: "①お受けする・お聞きする　②拝見する" },
+            { id: 297, chapter: "Unit 20", word: "給ふ", reading: "たまふ", meaning: "①お与えになる・下さる　②〜なさる　③〜ております" },
+            { id: 298, chapter: "Unit 20", word: "たまはす", reading: "たまはす", meaning: "①お与えになる・下さる" },
+            { id: 299, chapter: "Unit 20", word: "たまはる", reading: "たまはる", meaning: "①いただく・頂戴する　②お与えになる・下さる" },
+            { id: 300, chapter: "Unit 20", word: "召す", reading: "めす", meaning: "①お呼びになる　②お取り寄せになる　③お召しになる　④お乗りになる　⑤召し上がる" },
+
+            // --- Stage 31 (No.301〜310) ---
+            { id: 301, chapter: "Unit 21", word: "思す・思し召す", reading: "おぼす・おぼしめす", meaning: "①お思いになる（「思ふ」の尊敬語）" },
+            { id: 302, chapter: "Unit 21", word: "おほとのごもる", reading: "おほとのごもる", meaning: "①おやすみになる（「寝」「寝ぬ」の尊敬語）" },
+            { id: 303, chapter: "Unit 21", word: "さぶらふ・さうらふ", reading: "さぶらふ・さうらふ", meaning: "①お仕え申し上げる　②あります・います・おります　③〜です・〜でございます" },
+            { id: 304, chapter: "Unit 21", word: "はべり", reading: "はべり", meaning: "①お仕え申し上げる・伺候する　②あります・います・おります　③〜です・〜ございます" },
+            { id: 305, chapter: "Unit 21", word: "奉る", reading: "たてまつる", meaning: "①差し上げる・献上する　②〜申し上げる　③お召しになる　④召し上がる　⑤お乗りになる" },
+            { id: 306, chapter: "Unit 21", word: "参らす", reading: "まゐらす", meaning: "①差し上げる・献上する　②〜申し上げる・〜を差し上げる" },
+            { id: 307, chapter: "Unit 21", word: "御覧ず", reading: "ごらんず", meaning: "①ご覧になる（「見る」の尊敬語）" },
+            { id: 308, chapter: "Unit 21", word: "まかる", reading: "まかる", meaning: "①退出する・赴く・下る　②出かけます・参ります" },
+            { id: 309, chapter: "Unit 21", word: "つかはす", reading: "つかはす", meaning: "①おやりになる・派遣なさる　②行かせる・やる" },
+            { id: 310, chapter: "Unit 21", word: "つかまつる", reading: "つかまつる", meaning: "①お仕え申し上げる　②し申し上げる・して差し上げる" },
+
+            // --- Stage 32 (No.311〜315) ---
+            { id: 311, chapter: "Unit 21", word: "聞こし召す", reading: "きこしめす", meaning: "①お聞きになる　②召し上がる・お飲みになる" },
+            { id: 312, chapter: "Unit 21", word: "しろしめす", reading: "しろしめす", meaning: "①知っていらっしゃる（「知る」の尊敬語）　②お治めになる" },
+            { id: 313, chapter: "Unit 21", word: "おはす", reading: "おはす", meaning: "①いらっしゃる・おありになる　②〜いらっしゃる" },
+            { id: 314, chapter: "Unit 21", word: "いますかり", reading: "いますかり", meaning: "①いらっしゃる・お出でになる　②〜いらっしゃる" },
+            { id: 315, chapter: "Unit 21", word: "まうづ", reading: "まうづ", meaning: "①参上する（「行く」「来」の謙譲語）　②差し上げる　③召し上がる" }
+        ];
+
+        /**
+         * ============================================================================
+         * 2. 定数・グローバル状態管理
+         * ============================================================================
+         */
+        const STORAGE_KEY = 'kobun_315_progress_v1';
+        const CHECKED_STORAGE_KEY = 'kobun_315_checked_v1';
+        const TOTAL_STAGES = Math.ceil(KOBUN_WORDS.length / 10); // 32ステージ
+        const TIME_LIMIT_SEC = 20;
+
+        let userProgress = {}; // { [id]: { streak: 0|1|2, mastered: boolean } }
+        let checkedWords = {}; // { [id]: true }
+        window.userProgressRef = userProgress;
+        window.checkedWordsRef = checkedWords;
+
+        window.onCloudLoaded = function() {
+            KOBUN_WORDS.forEach(w => {
+                if (!userProgress[w.id]) {
+                    userProgress[w.id] = { streak: 0, mastered: false };
+                }
+            });
+            updateDashboard();
+            renderStageGrid();
+            if (!document.getElementById('view-dict').classList.contains('hidden')) {
+                renderDictionary();
+            }
+        };
+
+        let quizState = {
+            mode: 'stage',       // 'stage' | 'unlearned' | 'mastered' | 'all_random' | 'checked'
+            stageNum: 1,
+            randomCount: 10,
+            questions: [],
+            currentIndex: 0,
+            choices: [],
+            correctChoiceIndex: -1,
+            isAnswered: false,
+            timerId: null,
+            timeLeft: TIME_LIMIT_SEC,
+            results: []
+        };
+
+        let currentDictFilter = 'all';
+
+        /**
+         * ストレージへ学習データを保存する
+         */
+        function saveProgress() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(userProgress));
+            } catch (e) {
+                // Googleサイトのsandboxed iframeでは例外になる場合があるため無視
+            }
+            try {
+                window.name = 'KOBUN315_BACKUP:' + encodeBackupData();
+            } catch (e) {}
+            if (window.cloudSync && window.cloudSync.enabled) {
+                window.cloudSync.save(userProgress, checkedWords);
+            }
+        }
+
+        /**
+         * ストレージへチェック状態を保存する
+         */
+        function saveCheckedWords() {
+            try {
+                localStorage.setItem(CHECKED_STORAGE_KEY, JSON.stringify(checkedWords));
+            } catch (e) {}
+            try {
+                window.name = 'KOBUN315_BACKUP:' + encodeBackupData();
+            } catch (e) {}
+            if (window.cloudSync && window.cloudSync.enabled) {
+                window.cloudSync.save(userProgress, checkedWords);
+            }
+        }
+
+        /**
+         * バックアップコード生成・復元（Googleサイト埋め込み対策）
+         */
+        function encodeBackupData() {
+            const learned = [];
+            const mastered = [];
+            KOBUN_WORDS.forEach(w => {
+                const p = userProgress[w.id];
+                if (p && p.mastered) mastered.push(w.id);
+                else if (p && p.streak === 1) learned.push(w.id);
+            });
+            const checked = Object.keys(checkedWords).filter(id => checkedWords[id]).map(Number);
+            const payload = JSON.stringify({ m: mastered, l: learned, c: checked });
+            return btoa(unescape(encodeURIComponent(payload)));
+        }
+
+        function applyBackupData(codeStr) {
+            const clean = (codeStr || '').trim();
+            if (!clean) return false;
+            const jsonStr = decodeURIComponent(escape(atob(clean)));
+            const data = JSON.parse(jsonStr);
+            if (!data || typeof data !== 'object') return false;
+
+            KOBUN_WORDS.forEach(w => {
+                userProgress[w.id] = { streak: 0, mastered: false };
+            });
+            (data.l || []).forEach(id => {
+                if (userProgress[id]) userProgress[id] = { streak: 1, mastered: false };
+            });
+            (data.m || []).forEach(id => {
+                if (userProgress[id]) userProgress[id] = { streak: 2, mastered: true };
+            });
+            Object.keys(checkedWords).forEach(k => delete checkedWords[k]);
+            (data.c || []).forEach(id => {
+                checkedWords[id] = true;
+            });
+            return true;
+        }
+
+        function openBackupModal() {
+            const modal = document.getElementById('backup-modal');
+            const box = document.getElementById('backup-code-box');
+            box.value = encodeBackupData();
+            modal.classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function closeBackupModal() {
+            document.getElementById('backup-modal').classList.add('hidden');
+        }
+
+        function copyBackupCode() {
+            const box = document.getElementById('backup-code-box');
+            box.value = encodeBackupData();
+            box.select();
+            box.setSelectionRange(0, 99999);
+            try {
+                document.execCommand('copy');
+                showToast('保存コードをコピーしました！メモ帳等に保存してください');
+            } catch (e) {
+                showToast('テキストを選択してコピーしてください');
+            }
+        }
+
+        function restoreFromBackupCode() {
+            const box = document.getElementById('backup-code-box');
+            try {
+                if (applyBackupData(box.value)) {
+                    saveProgress();
+                    updateDashboard();
+                    renderStageGrid();
+                    if (!document.getElementById('view-dict').classList.contains('hidden')) {
+                        renderDictionary();
+                    }
+                    closeBackupModal();
+                    showToast('学習データを復元しました！');
+                } else {
+                    showToast('有効な保存コードを入力してください');
+                }
+            } catch (e) {
+                showToast('保存コードの形式が正しくありません');
+            }
+        }
+
+        // 起動時にwindow.nameからの自動引き継ぎも試行
+        (function tryRestoreFromWindowName() {
+            try {
+                if (window.name && window.name.startsWith('KOBUN315_BACKUP:')) {
+                    const code = window.name.slice('KOBUN315_BACKUP:'.length);
+                    applyBackupData(code);
+                }
+            } catch (e) {}
+        })();
+
+        /**
+         * ============================================================================
+         * 3. 初期化・タブ切り替え・ダッシュボード描画
+         * ============================================================================
+         */
+        function loadProgress() {
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                if (raw) {
+                    const parsed = JSON.parse(raw);
+                    Object.assign(userProgress, parsed);
+                }
+            } catch (e) {}
+            KOBUN_WORDS.forEach(w => {
+                if (!userProgress[w.id]) {
+                    userProgress[w.id] = { streak: 0, mastered: false };
+                }
+            });
+        }
+
+        function loadCheckedWords() {
+            try {
+                const raw = localStorage.getItem(CHECKED_STORAGE_KEY);
+                if (raw) {
+                    const parsed = JSON.parse(raw);
+                    Object.assign(checkedWords, parsed);
+                }
+            } catch (e) {}
+        }
+
+        function toggleWordCheck(wordId) {
+            if (checkedWords[wordId]) {
+                delete checkedWords[wordId];
+            } else {
+                checkedWords[wordId] = true;
+            }
+            saveCheckedWords();
+            updateCheckedBadges();
+        }
+
+        function updateCheckedBadges() {
+            const count = Object.keys(checkedWords).filter(id => checkedWords[id]).length;
+            const badge = document.getElementById('badge-checked-count');
+            const filterCount = document.getElementById('filter-checked-count');
+            const desc = document.getElementById('desc-checked');
+            if (badge) badge.textContent = `${count}語`;
+            if (filterCount) filterCount.textContent = count;
+            if (desc) {
+                desc.textContent = count > 0
+                    ? `★チェックをつけた ${count}語 からランダム出題`
+                    : `★チェックをつけた単語から出題します`;
+            }
+        }
+
+        function initApp() {
+            loadProgress();
+            loadCheckedWords();
+            updateDashboard();
+            renderStageGrid();
+            setupKeyboardShortcuts();
+            lucide.createIcons();
+        }
+
+        function switchTab(tabName) {
+            stopTimer();
+            ['stages', 'quiz', 'result', 'dict'].forEach(v => {
+                document.getElementById(`view-${v}`).classList.add('hidden');
+            });
+            document.getElementById(`view-${tabName}`).classList.remove('hidden');
+
+            const navStages = document.getElementById('nav-stages');
+            const navDict = document.getElementById('nav-dict');
+            if (tabName === 'dict') {
+                navDict.className = 'px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition flex items-center gap-1.5 bg-white text-indigo-950 shadow-sm';
+                navStages.className = 'px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition flex items-center gap-1.5 text-slate-600 hover:text-slate-900';
+                renderDictionary();
+            } else {
+                navStages.className = 'px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition flex items-center gap-1.5 bg-white text-indigo-950 shadow-sm';
+                navDict.className = 'px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition flex items-center gap-1.5 text-slate-600 hover:text-slate-900';
+                updateDashboard();
+                renderStageGrid();
+            }
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        /**
+         * ダッシュボードの集計値とプログレスバーを更新
+         */
+        function updateDashboard() {
+            let masteredCount = 0;
+            let learningCount = 0;
+
+            KOBUN_WORDS.forEach(w => {
+                const p = userProgress[w.id];
+                if (p.mastered) {
+                    masteredCount++;
+                } else if (p.streak === 1) {
+                    learningCount++;
+                }
+            });
+
+            const total = KOBUN_WORDS.length;
+            const masteredPct = ((masteredCount / total) * 100).toFixed(1);
+            const learningPct = ((learningCount / total) * 100).toFixed(1);
+
+            document.getElementById('stat-mastered').textContent = masteredCount;
+            document.getElementById('stat-mastered-sub').textContent = masteredCount;
+            document.getElementById('stat-learning').textContent = learningCount;
+            document.getElementById('stat-unlearned').textContent = total - masteredCount;
+            document.getElementById('stat-percent').textContent = masteredPct;
+
+            document.getElementById('bar-mastered').style.width = `${masteredPct}%`;
+            document.getElementById('bar-learning').style.width = `${learningPct}%`;
+
+            // スペシャルモードボタンの説明更新
+            const notMasteredTotal = total - masteredCount;
+            document.getElementById('desc-unlearned').textContent =
+                notMasteredTotal > 0
+                    ? `未習得 ${notMasteredTotal}語 からランダムに最大10問出題`
+                    : `全315語を習得済みです！素晴らしい！`;
+
+            document.getElementById('desc-mastered').textContent =
+                masteredCount > 0
+                    ? `習得済み ${masteredCount}語 からランダムに最大10問復習`
+                    : `まだ習得済みの単語がありません（2回連続正解で習得）`;
+
+            updateCheckedBadges();
+        }
+
+        /**
+         * 32ステージのグリッドカードを描画
+         */
+        function renderStageGrid() {
+            const grid = document.getElementById('stage-grid');
+            grid.innerHTML = '';
+
+            for (let s = 1; s <= TOTAL_STAGES; s++) {
+                const startIdx = (s - 1) * 10;
+                const stageWords = KOBUN_WORDS.slice(startIdx, startIdx + 10);
+                const wordCount = stageWords.length;
+                const masteredInStage = stageWords.filter(w => userProgress[w.id].mastered).length;
+                const learningInStage = stageWords.filter(w => !userProgress[w.id].mastered && userProgress[w.id].streak === 1).length;
+                const isAllMastered = masteredInStage === wordCount;
+
+                const firstNo = stageWords[0].id;
+                const lastNo = stageWords[stageWords.length - 1].id;
+
+                const card = document.createElement('button');
+                card.onclick = () => startStageQuiz(s);
+                card.className = isAllMastered
+                    ? 'group relative bg-emerald-50/80 hover:bg-emerald-50 border-2 border-emerald-400 rounded-2xl p-4 text-left transition shadow-2xs hover:shadow-md flex flex-col justify-between'
+                    : 'group relative bg-white hover:bg-indigo-50/40 border border-stone-200 hover:border-indigo-400 rounded-2xl p-4 text-left transition shadow-2xs hover:shadow-md flex flex-col justify-between';
+
+                // 10語それぞれの習得ドットインジケータ
+                const dotsHtml = stageWords.map(w => {
+                    const p = userProgress[w.id];
+                    if (p.mastered) return '<span class="w-2 h-2 rounded-full bg-emerald-500"></span>';
+                    if (p.streak === 1) return '<span class="w-2 h-2 rounded-full bg-amber-400"></span>';
+                    return '<span class="w-2 h-2 rounded-full bg-stone-200"></span>';
+                }).join('');
+
+                card.innerHTML = `
+                    <div class="flex items-start justify-between w-full mb-2">
+                        <div>
+                            <span class="text-[11px] font-bold tracking-wider uppercase ${isAllMastered ? 'text-emerald-700' : 'text-indigo-700'}">STAGE ${s}</span>
+                            <div class="font-serif font-extrabold text-base text-slate-900 mt-0.5">
+                                No.${firstNo}〜${lastNo}
+                            </div>
+                        </div>
+                        ${isAllMastered
+                            ? '<span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-500 text-white shadow-2xs">制覇</span>'
+                            : `<span class="text-xs font-bold text-slate-500">${masteredInStage}/${wordCount}</span>`
+                        }
+                    </div>
+
+                    <div class="space-y-2 mt-2">
+                        <div class="flex items-center gap-1 flex-wrap">
+                            ${dotsHtml}
+                        </div>
+                        <div class="text-[11px] text-slate-400 flex justify-between items-center">
+                            <span>${learningInStage > 0 ? `あと1回: ${learningInStage}語` : (isAllMastered ? 'パーフェクト！' : `全${wordCount}語`)}</span>
+                            <span class="font-bold text-indigo-700 group-hover:translate-x-0.5 transition">挑戦 →</span>
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            }
+        }
+
+        /**
+         * ============================================================================
+         * 4. クイズロジック（出題・9択生成・20秒タイマー・2回連続習得判定）
+         * ============================================================================
+         */
+        function shuffleArray(arr) {
+            const copy = [...arr];
+            for (let i = copy.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [copy[i], copy[j]] = [copy[j], copy[i]];
+            }
+            return copy;
+        }
+
+        /**
+         * 指定ステージのクイズを開始
+         */
+        function startStageQuiz(stageNum) {
+            const startIdx = (stageNum - 1) * 10;
+            const stageWords = KOBUN_WORDS.slice(startIdx, startIdx + 10);
+
+            quizState = {
+                mode: 'stage',
+                stageNum: stageNum,
+                randomCount: 10,
+                questions: shuffleArray(stageWords),
+                currentIndex: 0,
+                choices: [],
+                correctChoiceIndex: -1,
+                isAnswered: false,
+                timerId: null,
+                timeLeft: TIME_LIMIT_SEC,
+                results: []
+            };
+
+            document.getElementById('quiz-mode-label').textContent = `ステージ ${stageNum}`;
+            launchQuizView();
+        }
+
+        /**
+         * 全315語から指定問題数（10, 25, 50, 100）をランダム出題
+         */
+        function startAllRandomQuiz(count) {
+            const selected = shuffleArray(KOBUN_WORDS).slice(0, count);
+
+            quizState = {
+                mode: 'all_random',
+                stageNum: null,
+                randomCount: count,
+                questions: selected,
+                currentIndex: 0,
+                choices: [],
+                correctChoiceIndex: -1,
+                isAnswered: false,
+                timerId: null,
+                timeLeft: TIME_LIMIT_SEC,
+                results: []
+            };
+
+            document.getElementById('quiz-mode-label').textContent = `全315語ランダム (${count}題)`;
+            launchQuizView();
+        }
+
+        /**
+         * スペシャルモード（未習得集中 / 習得済み復習 / チェック済み）のクイズ開始
+         */
+        function startSpecialQuiz(modeType) {
+            let pool = [];
+            if (modeType === 'unlearned') {
+                pool = KOBUN_WORDS.filter(w => !userProgress[w.id].mastered);
+                if (pool.length === 0) {
+                    showToast('おめでとうございます！現在すべての315語が習得済みです！');
+                    return;
+                }
+            } else if (modeType === 'mastered') {
+                pool = KOBUN_WORDS.filter(w => userProgress[w.id].mastered);
+                if (pool.length === 0) {
+                    showToast('まだ習得済みの単語がありません。まずはステージに挑戦しましょう！');
+                    return;
+                }
+            } else if (modeType === 'checked') {
+                pool = KOBUN_WORDS.filter(w => !!checkedWords[w.id]);
+                if (pool.length === 0) {
+                    showToast('チェック済みの単語がありません。単語一覧や問題画面で★をつけてください！');
+                    return;
+                }
+            }
+
+            const selected = modeType === 'checked'
+                ? shuffleArray(pool)
+                : shuffleArray(pool).slice(0, 10);
+
+            quizState = {
+                mode: modeType,
+                stageNum: null,
+                randomCount: 10,
+                questions: selected,
+                currentIndex: 0,
+                choices: [],
+                correctChoiceIndex: -1,
+                isAnswered: false,
+                timerId: null,
+                timeLeft: TIME_LIMIT_SEC,
+                results: []
+            };
+
+            const modeLabels = {
+                unlearned: '未習得単語 集中特訓',
+                mastered: '習得済み単語 記憶チェック',
+                checked: `チェック済み単語 (${selected.length}語)`
+            };
+            document.getElementById('quiz-mode-label').textContent = modeLabels[modeType];
+            launchQuizView();
+        }
+
+        function retryCurrentQuiz() {
+            if (quizState.mode === 'stage') {
+                startStageQuiz(quizState.stageNum);
+            } else if (quizState.mode === 'all_random') {
+                startAllRandomQuiz(quizState.randomCount);
+            } else {
+                startSpecialQuiz(quizState.mode);
+            }
+        }
+
+        function launchQuizView() {
+            ['stages', 'result', 'dict'].forEach(v => document.getElementById(`view-${v}`).classList.add('hidden'));
+            document.getElementById('view-quiz').classList.remove('hidden');
+            document.getElementById('quiz-q-total').textContent = quizState.questions.length;
+            renderCurrentQuestion();
+        }
+
+        /**
+         * 現在の問題と9択ボタン（1〜8: 意味, 9: わからない）を生成・描画
+         */
+        function renderCurrentQuestion() {
+            stopTimer();
+            quizState.isAnswered = false;
+            quizState.timeLeft = TIME_LIMIT_SEC;
+
+            const currentWord = quizState.questions[quizState.currentIndex];
+            const prog = userProgress[currentWord.id];
+
+            // ヘッダー更新
+            document.getElementById('quiz-q-num').textContent = quizState.currentIndex + 1;
+
+            // 単語の現在のステータス表示（見出し番号も表示）
+            const badge = document.getElementById('word-status-badge');
+            if (prog.mastered) {
+                badge.className = 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200';
+                badge.innerHTML = `<span class="font-mono text-[11px] bg-emerald-200/80 px-1.5 rounded">No.${currentWord.id}</span> <span class="w-2 h-2 rounded-full bg-emerald-500"></span> 習得済み（誤答で未習得へ降格）`;
+            } else if (prog.streak === 1) {
+                badge.className = 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-200';
+                badge.innerHTML = `<span class="font-mono text-[11px] bg-amber-200/80 px-1.5 rounded">No.${currentWord.id}</span> <span class="w-2 h-2 rounded-full bg-amber-500"></span> 習得中（連続正解: 1/2 — あと1回で習得！）`;
+            } else {
+                badge.className = 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-600 border border-slate-200';
+                badge.innerHTML = `<span class="font-mono text-[11px] bg-slate-200/80 px-1.5 rounded">No.${currentWord.id}</span> <span class="w-2 h-2 rounded-full bg-slate-400"></span> 未習得（連続正解: 0/2）`;
+            }
+
+            // 単語と読みを表示
+            document.getElementById('word-reading').textContent = currentWord.reading;
+            document.getElementById('word-display').textContent = currentWord.word;
+
+            // クイズ中のチェックボタン状態更新
+            updateQuizCheckButton(currentWord.id);
+
+            // 8択の選択肢を作成（正解1つ + 他の単語から重複しないダミー7つ）
+            const otherMeaningsPool = KOBUN_WORDS
+                .filter(w => w.id !== currentWord.id && w.meaning !== currentWord.meaning)
+                .map(w => w.meaning);
+
+            const uniqueDummyPool = [...new Set(otherMeaningsPool)];
+            const dummies = shuffleArray(uniqueDummyPool).slice(0, 7);
+
+            const eightChoices = shuffleArray([currentWord.meaning, ...dummies]);
+            quizState.choices = eightChoices;
+            quizState.correctChoiceIndex = eightChoices.indexOf(currentWord.meaning); // 0〜7
+
+            // フィードバックパネルを隠す
+            const fbPanel = document.getElementById('feedback-panel');
+            fbPanel.classList.add('hidden');
+
+            // 選択肢ボタン描画（1〜8 + 9番：わからない）
+            const grid = document.getElementById('choices-grid');
+            grid.innerHTML = '';
+
+            eightChoices.forEach((meaningText, idx) => {
+                const num = idx + 1;
+                const btn = document.createElement('button');
+                btn.id = `choice-btn-${idx}`;
+                btn.onclick = () => handleAnswer(idx);
+                btn.className = 'choice-btn flex items-center gap-3 p-3.5 rounded-xl bg-white hover:bg-indigo-50/70 border-2 border-stone-200 hover:border-indigo-400 text-left shadow-2xs focus:outline-none';
+                btn.innerHTML = `
+                    <span class="w-7 h-7 rounded-lg bg-stone-100 text-slate-700 font-black text-xs flex items-center justify-center shrink-0 border border-stone-200">
+                        ${num}
+                    </span>
+                    <span class="text-xs sm:text-sm font-bold text-slate-800 leading-snug">
+                        ${meaningText}
+                    </span>
+                `;
+                grid.appendChild(btn);
+            });
+
+            // 9番：わからない（固定・全幅配置）
+            const unknownBtn = document.createElement('button');
+            unknownBtn.id = 'choice-btn-8';
+            unknownBtn.onclick = () => handleAnswer(8);
+            unknownBtn.className = 'choice-btn sm:col-span-2 flex items-center justify-center gap-2.5 p-3.5 rounded-xl bg-stone-100 hover:bg-stone-200/80 border-2 border-stone-300/80 text-slate-600 font-bold text-sm transition focus:outline-none mt-1';
+            unknownBtn.innerHTML = `
+                <span class="w-7 h-7 rounded-lg bg-white text-slate-600 font-black text-xs flex items-center justify-center border border-stone-300">
+                    9
+                </span>
+                <span>わからない（パスして正解を確認）</span>
+            `;
+            grid.appendChild(unknownBtn);
+
+            // タイマー開始
+            startTimer();
+            lucide.createIcons();
+        }
+
+        /**
+         * 20秒カウントダウンタイマー
+         */
+        function startTimer() {
+            const startTime = Date.now();
+            const durationMs = TIME_LIMIT_SEC * 1000;
+
+            updateTimerUI(TIME_LIMIT_SEC);
+
+            quizState.timerId = setInterval(() => {
+                if (quizState.isAnswered) {
+                    stopTimer();
+                    return;
+                }
+                const elapsed = Date.now() - startTime;
+                const remaining = Math.max(0, (durationMs - elapsed) / 1000);
+                quizState.timeLeft = remaining;
+
+                updateTimerUI(remaining);
+
+                if (remaining <= 0) {
+                    stopTimer();
+                    handleAnswer(-1); // 時間切れは -1 として不正解処理
+                }
+            }, 50);
+        }
+
+        function stopTimer() {
+            if (quizState.timerId) {
+                clearInterval(quizState.timerId);
+                quizState.timerId = null;
+            }
+        }
+
+        function updateTimerUI(seconds) {
+            const pct = (seconds / TIME_LIMIT_SEC) * 100;
+            const bar = document.getElementById('timer-bar');
+            const text = document.getElementById('timer-text');
+
+            bar.style.width = `${pct}%`;
+            text.textContent = `${seconds.toFixed(1)}秒`;
+
+            if (seconds <= 5) {
+                bar.className = 'h-full bg-rose-500 transition-all duration-75 ease-linear';
+                text.className = 'font-mono text-sm font-black text-rose-600 animate-pulse';
+            } else if (seconds <= 10) {
+                bar.className = 'h-full bg-amber-500 transition-all duration-75 ease-linear';
+                text.className = 'font-mono text-sm font-bold text-amber-600';
+            } else {
+                bar.className = 'h-full bg-indigo-600 transition-all duration-75 ease-linear';
+                text.className = 'font-mono text-sm font-bold text-indigo-900';
+            }
+        }
+
+        /**
+         * 回答処理と習得ロジックの判定
+         * @param {number} selectedIdx 0〜7:選択肢1〜8, 8:わからない(9番), -1:時間切れ
+         */
+        function handleAnswer(selectedIdx) {
+            if (quizState.isAnswered) return;
+            quizState.isAnswered = true;
+            stopTimer();
+
+            const currentWord = quizState.questions[quizState.currentIndex];
+            const prevProg = { ...userProgress[currentWord.id] };
+            const isTimeout = selectedIdx === -1;
+            const isUnknown = selectedIdx === 8;
+            const isCorrect = selectedIdx === quizState.correctChoiceIndex;
+
+            let statusChange = 'stay_unlearned';
+
+            if (isCorrect) {
+                if (prevProg.mastered) {
+                    // すでに習得済み → 維持
+                    userProgress[currentWord.id] = { streak: 2, mastered: true };
+                    statusChange = 'stay_mastered';
+                } else {
+                    const newStreak = prevProg.streak + 1;
+                    if (newStreak >= 2) {
+                        // 2回連続正解 → 習得済みに昇格！
+                        userProgress[currentWord.id] = { streak: 2, mastered: true };
+                        statusChange = 'promoted';
+                    } else {
+                        // 1回目正解 → 習得中(1/2)
+                        userProgress[currentWord.id] = { streak: 1, mastered: false };
+                        statusChange = 'progress';
+                    }
+                }
+            } else {
+                // 不正解・9番わからない・時間切れ → 連続正解リセット＆未習得へ
+                userProgress[currentWord.id] = { streak: 0, mastered: false };
+                if (prevProg.mastered) {
+                    statusChange = 'demoted';
+                } else {
+                    statusChange = 'stay_unlearned';
+                }
+            }
+
+            // LocalStorageへ即座に保存
+            saveProgress();
+
+            // 結果履歴に追加
+            quizState.results.push({
+                wordObj: currentWord,
+                isCorrect: isCorrect,
+                statusChange: statusChange
+            });
+
+            // 選択肢ボタンのスタイルを正誤状態に更新
+            for (let i = 0; i <= 8; i++) {
+                const btn = document.getElementById(`choice-btn-${i}`);
+                if (!btn) continue;
+                btn.disabled = true;
+
+                if (i === quizState.correctChoiceIndex) {
+                    // 正解のボタンを強調
+                    btn.className = 'choice-btn flex items-center gap-3 p-3.5 rounded-xl bg-emerald-50 border-2 border-emerald-500 text-left shadow-sm';
+                    btn.querySelector('span:first-child').className = 'w-7 h-7 rounded-lg bg-emerald-600 text-white font-black text-xs flex items-center justify-center shrink-0';
+                } else if (i === selectedIdx && !isCorrect) {
+                    // 誤って選んだボタンを強調
+                    const spanCol = i === 8 ? 'sm:col-span-2 ' : '';
+                    btn.className = `${spanCol}choice-btn flex items-center gap-3 p-3.5 rounded-xl bg-rose-50 border-2 border-rose-400 text-left opacity-95`;
+                    btn.querySelector('span:first-child').className = 'w-7 h-7 rounded-lg bg-rose-600 text-white font-black text-xs flex items-center justify-center shrink-0';
+                } else {
+                    btn.classList.add('opacity-45');
+                }
+            }
+
+            // フィードバックパネルの描画
+            renderFeedbackPanel(currentWord, isCorrect, isTimeout, isUnknown, statusChange);
+        }
+
+        function renderFeedbackPanel(wordObj, isCorrect, isTimeout, isUnknown, statusChange) {
+            const panel = document.getElementById('feedback-panel');
+            const resBadge = document.getElementById('fb-result-badge');
+            const changeBadge = document.getElementById('fb-status-change');
+            const meaningEl = document.getElementById('fb-correct-meaning');
+            const nextLabel = document.getElementById('btn-next-label');
+
+            panel.classList.remove('hidden');
+            meaningEl.textContent = wordObj.meaning;
+
+            if (isCorrect) {
+                panel.className = 'mt-4 rounded-2xl p-5 border-2 border-emerald-400 bg-emerald-50/90 shadow-md animate-pop';
+                resBadge.className = 'inline-flex items-center gap-1 px-3 py-1 rounded-lg text-sm font-black bg-emerald-600 text-white';
+                resBadge.innerHTML = `<i data-lucide="check" class="w-4 h-4"></i> 正解！`;
+            } else {
+                panel.className = 'mt-4 rounded-2xl p-5 border-2 border-rose-300 bg-rose-50/90 shadow-md animate-shake';
+                resBadge.className = 'inline-flex items-center gap-1 px-3 py-1 rounded-lg text-sm font-black bg-rose-600 text-white';
+                if (isTimeout) {
+                    resBadge.innerHTML = `<i data-lucide="clock" class="w-4 h-4"></i> 時間切れ…`;
+                } else if (isUnknown) {
+                    resBadge.innerHTML = `<i data-lucide="help-circle" class="w-4 h-4"></i> わからない`;
+                } else {
+                    resBadge.innerHTML = `<i data-lucide="x" class="w-4 h-4"></i> 不正解…`;
+                }
+            }
+
+            // ステータス変化通知バッジ
+            if (statusChange === 'promoted') {
+                changeBadge.className = 'inline-flex items-center gap-1 px-3 py-1 rounded-lg text-xs font-black bg-amber-400 text-indigo-950 shadow-2xs';
+                changeBadge.innerHTML = `<i data-lucide="sparkles" class="w-3.5 h-3.5"></i> 2回連続正解！「習得済み」に昇格！`;
+            } else if (statusChange === 'progress') {
+                changeBadge.className = 'inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300';
+                changeBadge.innerHTML = `連続正解 1/2（あと1回連続正解で習得！）`;
+            } else if (statusChange === 'stay_mastered') {
+                changeBadge.className = 'inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-100 text-emerald-800';
+                changeBadge.innerHTML = `習得済みキープ！`;
+            } else if (statusChange === 'demoted') {
+                changeBadge.className = 'inline-flex items-center gap-1 px-3 py-1 rounded-lg text-xs font-black bg-rose-200 text-rose-900';
+                changeBadge.innerHTML = `<i data-lucide="trending-down" class="w-3.5 h-3.5"></i> 習得済みから「未習得」に降格しました…`;
+            } else {
+                changeBadge.className = 'inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-200/80 text-slate-700';
+                changeBadge.innerHTML = `未習得（連続正解: 0/2）`;
+            }
+
+            // 最終問題かどうかのボタン表記
+            if (quizState.currentIndex + 1 >= quizState.questions.length) {
+                nextLabel.textContent = '結果を見る';
+            } else {
+                nextLabel.textContent = '次の問題へ';
+            }
+
+            lucide.createIcons();
+        }
+
+        function nextQuestion() {
+            if (!quizState.isAnswered) return;
+
+            if (quizState.currentIndex + 1 < quizState.questions.length) {
+                quizState.currentIndex++;
+                renderCurrentQuestion();
+            } else {
+                showResultScreen();
+            }
+        }
+
+        function quitQuiz() {
+            stopTimer();
+            switchTab('stages');
+        }
+
+        function updateQuizCheckButton(wordId) {
+            const btn = document.getElementById('btn-quiz-check');
+            if (!btn) return;
+            const isChecked = !!checkedWords[wordId];
+            if (isChecked) {
+                btn.className = 'absolute top-3.5 right-3.5 p-2 rounded-xl border border-amber-300 bg-amber-50 text-amber-500 transition focus:outline-none shadow-2xs';
+                btn.innerHTML = `<i data-lucide="star" class="w-5 h-5 fill-amber-400 text-amber-500"></i>`;
+            } else {
+                btn.className = 'absolute top-3.5 right-3.5 p-2 rounded-xl border border-stone-200 bg-stone-50/80 hover:bg-amber-50 text-slate-400 hover:text-amber-500 transition focus:outline-none';
+                btn.innerHTML = `<i data-lucide="star" class="w-5 h-5"></i>`;
+            }
+            lucide.createIcons();
+        }
+
+        function toggleCurrentQuizWordCheck() {
+            const currentWord = quizState.questions[quizState.currentIndex];
+            if (!currentWord) return;
+            toggleWordCheck(currentWord.id);
+            updateQuizCheckButton(currentWord.id);
+            showToast(checkedWords[currentWord.id]
+                ? `No.${currentWord.id}「${currentWord.word}」をチェックしました`
+                : `No.${currentWord.id}「${currentWord.word}」のチェックを外しました`);
+        }
+
+        /**
+         * ============================================================================
+         * 5. リザルト画面
+         * ============================================================================
+         */
+        function showResultScreen() {
+            stopTimer();
+            ['stages', 'quiz', 'dict'].forEach(v => document.getElementById(`view-${v}`).classList.add('hidden'));
+            document.getElementById('view-result').classList.remove('hidden');
+
+            const total = quizState.results.length;
+            const correctCount = quizState.results.filter(r => r.isCorrect).length;
+            const promotedCount = quizState.results.filter(r => r.statusChange === 'promoted').length;
+            const demotedCount = quizState.results.filter(r => r.statusChange === 'demoted').length;
+
+            const resultTitles = {
+                stage: `ステージ ${quizState.stageNum} 結果`,
+                unlearned: '未習得集中特訓 結果',
+                mastered: '習得済み復習 結果',
+                all_random: `全315語ランダム (${total}題) 結果`,
+                checked: 'チェック済み単語 結果'
+            };
+            document.getElementById('result-title').textContent = resultTitles[quizState.mode] || '演習結果';
+
+            document.getElementById('res-correct').textContent = correctCount;
+            document.getElementById('res-total').textContent = total;
+            document.getElementById('res-promoted').textContent = promotedCount;
+            document.getElementById('res-demoted').textContent = demotedCount;
+
+            const listEl = document.getElementById('result-word-list');
+            listEl.innerHTML = '';
+
+            quizState.results.forEach(item => {
+                const w = item.wordObj;
+                const p = userProgress[w.id];
+                const isChecked = !!checkedWords[w.id];
+
+                let statusPill = '';
+                if (item.statusChange === 'promoted') {
+                    statusPill = `<span class="px-2 py-0.5 rounded-md text-[11px] font-black bg-amber-400 text-indigo-950">新規習得！</span>`;
+                } else if (item.statusChange === 'demoted') {
+                    statusPill = `<span class="px-2 py-0.5 rounded-md text-[11px] font-black bg-rose-100 text-rose-700">未習得へ降格</span>`;
+                } else if (p.mastered) {
+                    statusPill = `<span class="px-2 py-0.5 rounded-md text-[11px] font-bold bg-emerald-100 text-emerald-800">習得済み</span>`;
+                } else if (p.streak === 1) {
+                    statusPill = `<span class="px-2 py-0.5 rounded-md text-[11px] font-bold bg-amber-100 text-amber-800">習得中(1/2)</span>`;
+                } else {
+                    statusPill = `<span class="px-2 py-0.5 rounded-md text-[11px] font-bold bg-slate-100 text-slate-600">未習得(0/2)</span>`;
+                }
+
+                const row = document.createElement('div');
+                row.className = 'p-3 bg-white flex items-center justify-between gap-2.5';
+                row.innerHTML = `
+                    <div class="flex items-center gap-2 min-w-0">
+                        <button onclick="toggleResultWordCheck(${w.id}, this)" title="チェック切り替え" class="p-1.5 rounded-lg hover:bg-amber-50 transition shrink-0 focus:outline-none">
+                            <i data-lucide="star" class="w-4 h-4 ${isChecked ? 'fill-amber-400 text-amber-500' : 'text-slate-300'}"></i>
+                        </button>
+                        <span class="w-6 h-6 rounded-full flex items-center justify-center shrink-0 text-xs font-black ${item.isCorrect ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}">
+                            ${item.isCorrect ? '○' : '×'}
+                        </span>
+                        <div class="min-w-0">
+                            <div class="font-bold text-slate-900 text-sm">
+                                <span class="font-mono text-xs text-slate-400 mr-1">No.${w.id}</span>${w.word} <span class="text-xs font-normal text-slate-400">(${w.reading})</span>
+                            </div>
+                            <div class="text-xs text-slate-600 truncate">${w.meaning}</div>
+                        </div>
+                    </div>
+                    <div class="shrink-0">
+                        ${statusPill}
+                    </div>
+                `;
+                listEl.appendChild(row);
+            });
+
+            lucide.createIcons();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function toggleResultWordCheck(wordId, btnEl) {
+            toggleWordCheck(wordId);
+            const isChecked = !!checkedWords[wordId];
+            btnEl.innerHTML = `<i data-lucide="star" class="w-4 h-4 ${isChecked ? 'fill-amber-400 text-amber-500' : 'text-slate-300'}"></i>`;
+            lucide.createIcons();
+        }
+
+        /**
+         * ============================================================================
+         * 6. 単語一覧（辞書・進捗確認）画面
+         * ============================================================================
+         */
+        function setDictFilter(filterType) {
+            currentDictFilter = filterType;
+            document.querySelectorAll('.dict-filter-btn').forEach(btn => {
+                btn.className = 'dict-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 whitespace-nowrap';
+            });
+            document.getElementById(`filter-${filterType}`).className =
+                'dict-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-white text-indigo-950 shadow-sm whitespace-nowrap';
+            renderDictionary();
+        }
+
+        function renderDictionary() {
+            const query = (document.getElementById('dict-search')?.value || '').trim().toLowerCase();
+            const tbody = document.getElementById('dict-tbody');
+            tbody.innerHTML = '';
+
+            updateCheckedBadges();
+
+            const bulkBar = document.getElementById('checked-bulk-bar');
+            if (bulkBar) {
+                if (currentDictFilter === 'checked') bulkBar.classList.remove('hidden');
+                else bulkBar.classList.add('hidden');
+            }
+
+            const filtered = KOBUN_WORDS.filter(w => {
+                const p = userProgress[w.id];
+                if (currentDictFilter === 'checked' && !checkedWords[w.id]) return false;
+                if (currentDictFilter === 'mastered' && !p.mastered) return false;
+                if (currentDictFilter === 'learning' && (p.mastered || p.streak !== 1)) return false;
+                if (currentDictFilter === 'unlearned' && (p.mastered || p.streak !== 0)) return false;
+
+                if (query) {
+                    const hit = String(w.id) === query ||
+                                `no.${w.id}`.includes(query) ||
+                                w.word.toLowerCase().includes(query) ||
+                                w.reading.toLowerCase().includes(query) ||
+                                w.meaning.toLowerCase().includes(query) ||
+                                (w.chapter && w.chapter.toLowerCase().includes(query));
+                    if (!hit) return false;
+                }
+                return true;
+            });
+
+            document.getElementById('dict-count').textContent = filtered.length;
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="py-10 text-center text-slate-400 text-sm">
+                            該当する単語が見つかりませんでした
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            filtered.forEach(w => {
+                const p = userProgress[w.id];
+                const isChecked = !!checkedWords[w.id];
+                let badgeHtml = '';
+                if (p.mastered) {
+                    badgeHtml = `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">習得済み</span>`;
+                } else if (p.streak === 1) {
+                    badgeHtml = `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800">あと1回 (1/2)</span>`;
+                } else {
+                    badgeHtml = `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-500">未習得 (0/2)</span>`;
+                }
+
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-stone-50/80 transition';
+                tr.innerHTML = `
+                    <td class="py-3 px-2 text-center">
+                        <button onclick="toggleDictWordCheck(${w.id})" title="チェック切り替え" class="p-1.5 rounded-lg hover:bg-amber-50 transition focus:outline-none">
+                            <i data-lucide="star" class="w-4 h-4 ${isChecked ? 'fill-amber-400 text-amber-500' : 'text-slate-300 hover:text-amber-400'}"></i>
+                        </button>
+                    </td>
+                    <td class="py-3 px-4 font-mono text-xs text-slate-500 font-bold">
+                        <div>No.${w.id}</div>
+                        <div class="text-[10px] font-sans font-normal text-slate-400 mt-0.5">${w.chapter ? w.chapter.split(' ')[0] : ''}</div>
+                    </td>
+                    <td class="py-3 px-4">
+                        <div class="font-serif font-extrabold text-base text-slate-900">${w.word}</div>
+                        <div class="text-[11px] text-indigo-700 font-medium">${w.reading}</div>
+                    </td>
+                    <td class="py-3 px-4 text-xs sm:text-sm text-slate-700 leading-relaxed">${w.meaning}</td>
+                    <td class="py-3 px-4 text-center">${badgeHtml}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+            lucide.createIcons();
+        }
+
+        function toggleDictWordCheck(wordId) {
+            toggleWordCheck(wordId);
+            renderDictionary();
+        }
+
+        function clearAllChecked() {
+            checkedWords = {};
+            saveCheckedWords();
+            renderDictionary();
+            showToast('すべてのチェックを解除しました');
+        }
+
+        /**
+         * ============================================================================
+         * 7. キーボードショートカット & リセット機能
+         * ============================================================================
+         */
+        function setupKeyboardShortcuts() {
+            document.addEventListener('keydown', (e) => {
+                const quizView = document.getElementById('view-quiz');
+                if (quizView.classList.contains('hidden')) return;
+
+                // 1〜9キーで回答選択
+                if (!quizState.isAnswered && e.key >= '1' && e.key <= '9') {
+                    e.preventDefault();
+                    const idx = parseInt(e.key, 10) - 1;
+                    handleAnswer(idx);
+                }
+                // Enter または Space で次の問題へ
+                else if (quizState.isAnswered && (e.key === 'Enter' || e.key === ' ')) {
+                    e.preventDefault();
+                    nextQuestion();
+                }
+            });
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-msg').textContent = msg;
+            toast.classList.remove('hidden');
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 3000);
+        }
+
+        // ページを閉じる・離れる前の確認ダイアログ（ブラウザ標準メッセージが表示されます）
+        window.addEventListener('beforeunload', (e) => {
+            e.preventDefault();
+            e.returnValue = 'データを保存して';
+            return 'データを保存して';
+        });
+
+        // 起動
+        window.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html>
