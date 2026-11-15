@@ -252,7 +252,7 @@
                 <div class="flex items-center justify-between mb-3 px-1">
                     <h3 class="font-bold text-slate-800 flex items-center gap-2">
                         <i data-lucide="grid" class="w-4 h-4 text-indigo-700"></i>
-                        <span>ステージ一覧（全32ステージ / 315語）</span>
+                        <span>ステージ一覧（全21ステージ / 315語）</span>
                     </h3>
                     <span class="text-xs text-slate-500">1問20秒制限 / 8択＋9番「わからない」</span>
                 </div>
@@ -965,200 +965,147 @@
          */
         const STORAGE_KEY = 'kobun_315_progress_v1';
         const CHECKED_STORAGE_KEY = 'kobun_315_checked_v1';
-        const TOTAL_STAGES = Math.ceil(KOBUN_WORDS.length / 10); // 32ステージ
+        const STAGE_SIZE = 15;
+        const TOTAL_STAGES = Math.ceil(KOBUN_WORDS.length / STAGE_SIZE); // 21ステージ
         const TIME_LIMIT_SEC = 20;
 
-        let userProgress = {}; // { [id]: { streak: 0|1|2, mastered: boolean } }
-        let checkedWords = {}; // { [id]: true }
+        let userProgress = {};
+        let checkedWords = {};
         window.userProgressRef = userProgress;
         window.checkedWordsRef = checkedWords;
 
-        window.onCloudLoaded = function() {
-            KOBUN_WORDS.forEach(w => {
-                if (!userProgress[w.id]) {
-                    userProgress[w.id] = { streak: 0, mastered: false };
-                }
-            });
-            updateDashboard();
-            renderStageGrid();
-            if (!document.getElementById('view-dict').classList.contains('hidden')) {
-                renderDictionary();
-            }
-        };
-
         let quizState = {
-            mode: 'stage',       // 'stage' | 'unlearned' | 'mastered' | 'all_random' | 'checked'
+            mode: 'stage',
             stageNum: 1,
-            randomCount: 10,
+            title: '',
             questions: [],
             currentIndex: 0,
-            choices: [],
-            correctChoiceIndex: -1,
-            isAnswered: false,
+            correctCount: 0,
+            promotedCount: 0,
+            demotedCount: 0,
+            history: [],
+            answered: false,
             timerId: null,
             timeLeft: TIME_LIMIT_SEC,
-            results: []
+            currentChoices: []
         };
 
         let currentDictFilter = 'all';
 
         /**
-         * ストレージへ学習データを保存する
+         * ============================================================================
+         * 3. 初期化・データ永続化処理
+         * ============================================================================
          */
-        function saveProgress() {
-            try {
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(userProgress));
-            } catch (e) {
-                // Googleサイトのsandboxed iframeでは例外になる場合があるため無視
-            }
-            try {
-                window.name = 'KOBUN315_BACKUP:' + encodeBackupData();
-            } catch (e) {}
-            if (window.cloudSync && window.cloudSync.enabled) {
-                window.cloudSync.save(userProgress, checkedWords);
-            }
-        }
-
-        /**
-         * ストレージへチェック状態を保存する
-         */
-        function saveCheckedWords() {
-            try {
-                localStorage.setItem(CHECKED_STORAGE_KEY, JSON.stringify(checkedWords));
-            } catch (e) {}
-            try {
-                window.name = 'KOBUN315_BACKUP:' + encodeBackupData();
-            } catch (e) {}
-            if (window.cloudSync && window.cloudSync.enabled) {
-                window.cloudSync.save(userProgress, checkedWords);
-            }
-        }
-
-        /**
-         * バックアップコード生成・復元（Googleサイト埋め込み対策）
-         */
-        function encodeBackupData() {
-            const learned = [];
-            const mastered = [];
-            KOBUN_WORDS.forEach(w => {
-                const p = userProgress[w.id];
-                if (p && p.mastered) mastered.push(w.id);
-                else if (p && p.streak === 1) learned.push(w.id);
-            });
-            const checked = Object.keys(checkedWords).filter(id => checkedWords[id]).map(Number);
-            const payload = JSON.stringify({ m: mastered, l: learned, c: checked });
-            return btoa(unescape(encodeURIComponent(payload)));
-        }
-
-        function applyBackupData(codeStr) {
-            const clean = (codeStr || '').trim();
-            if (!clean) return false;
-            const jsonStr = decodeURIComponent(escape(atob(clean)));
-            const data = JSON.parse(jsonStr);
-            if (!data || typeof data !== 'object') return false;
-
+        function initApp() {
             KOBUN_WORDS.forEach(w => {
                 userProgress[w.id] = { streak: 0, mastered: false };
             });
-            (data.l || []).forEach(id => {
-                if (userProgress[id]) userProgress[id] = { streak: 1, mastered: false };
-            });
-            (data.m || []).forEach(id => {
-                if (userProgress[id]) userProgress[id] = { streak: 2, mastered: true };
-            });
-            Object.keys(checkedWords).forEach(k => delete checkedWords[k]);
-            (data.c || []).forEach(id => {
-                checkedWords[id] = true;
-            });
-            return true;
-        }
 
-        function openBackupModal() {
-            const modal = document.getElementById('backup-modal');
-            const box = document.getElementById('backup-code-box');
-            box.value = encodeBackupData();
-            modal.classList.remove('hidden');
+            loadProgress();
+            loadCheckedWords();
+
+            window.onCloudLoaded = () => {
+                saveProgress(true);
+                saveCheckedWords(true);
+                updateDashboardStats();
+                renderStageGrid();
+                updateCheckedBadges();
+                if (!document.getElementById('view-dict').classList.contains('hidden')) {
+                    renderDictionary();
+                }
+            };
+
+            updateDashboardStats();
+            renderStageGrid();
+            updateCheckedBadges();
+            renderDictionary();
             lucide.createIcons();
+
+            window.addEventListener('beforeunload', (e) => {
+                e.preventDefault();
+                e.returnValue = '';
+            });
         }
 
-        function closeBackupModal() {
-            document.getElementById('backup-modal').classList.add('hidden');
-        }
-
-        function copyBackupCode() {
-            const box = document.getElementById('backup-code-box');
-            box.value = encodeBackupData();
-            box.select();
-            box.setSelectionRange(0, 99999);
-            try {
-                document.execCommand('copy');
-                showToast('保存コードをコピーしました！メモ帳等に保存してください');
-            } catch (e) {
-                showToast('テキストを選択してコピーしてください');
-            }
-        }
-
-        function restoreFromBackupCode() {
-            const box = document.getElementById('backup-code-box');
-            try {
-                if (applyBackupData(box.value)) {
-                    saveProgress();
-                    updateDashboard();
-                    renderStageGrid();
-                    if (!document.getElementById('view-dict').classList.contains('hidden')) {
-                        renderDictionary();
-                    }
-                    closeBackupModal();
-                    showToast('学習データを復元しました！');
-                } else {
-                    showToast('有効な保存コードを入力してください');
-                }
-            } catch (e) {
-                showToast('保存コードの形式が正しくありません');
-            }
-        }
-
-        // 起動時にwindow.nameからの自動引き継ぎも試行
-        (function tryRestoreFromWindowName() {
-            try {
-                if (window.name && window.name.startsWith('KOBUN315_BACKUP:')) {
-                    const code = window.name.slice('KOBUN315_BACKUP:'.length);
-                    applyBackupData(code);
-                }
-            } catch (e) {}
-        })();
-
-        /**
-         * ============================================================================
-         * 3. 初期化・タブ切り替え・ダッシュボード描画
-         * ============================================================================
-         */
         function loadProgress() {
+            let loaded = null;
             try {
                 const raw = localStorage.getItem(STORAGE_KEY);
-                if (raw) {
-                    const parsed = JSON.parse(raw);
-                    Object.assign(userProgress, parsed);
-                }
+                if (raw) loaded = JSON.parse(raw);
             } catch (e) {}
-            KOBUN_WORDS.forEach(w => {
-                if (!userProgress[w.id]) {
-                    userProgress[w.id] = { streak: 0, mastered: false };
-                }
-            });
+
+            if (!loaded && window.name && window.name.startsWith('CJV315_STATE:')) {
+                try {
+                    const parsed = JSON.parse(window.name.slice('CJV315_STATE:'.length));
+                    if (parsed && parsed.progress) loaded = parsed.progress;
+                } catch (e) {}
+            }
+
+            if (loaded && typeof loaded === 'object') {
+                KOBUN_WORDS.forEach(w => {
+                    if (loaded[w.id]) {
+                        userProgress[w.id] = {
+                            streak: Number(loaded[w.id].streak) || 0,
+                            mastered: Boolean(loaded[w.id].mastered)
+                        };
+                    }
+                });
+            }
+        }
+
+        function saveProgress(skipCloud = false) {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(userProgress));
+            } catch (e) {}
+            saveToWindowName();
+            if (!skipCloud && window.cloudSync && typeof window.cloudSync.save === 'function') {
+                window.cloudSync.save(userProgress, checkedWords);
+            }
         }
 
         function loadCheckedWords() {
+            let loaded = null;
             try {
                 const raw = localStorage.getItem(CHECKED_STORAGE_KEY);
-                if (raw) {
-                    const parsed = JSON.parse(raw);
-                    Object.assign(checkedWords, parsed);
-                }
+                if (raw) loaded = JSON.parse(raw);
+            } catch (e) {}
+
+            if (!loaded && window.name && window.name.startsWith('CJV315_STATE:')) {
+                try {
+                    const parsed = JSON.parse(window.name.slice('CJV315_STATE:'.length));
+                    if (parsed && parsed.checked) loaded = parsed.checked;
+                } catch (e) {}
+            }
+
+            if (loaded && typeof loaded === 'object') {
+                Object.keys(loaded).forEach(k => {
+                    if (loaded[k]) checkedWords[k] = true;
+                });
+            }
+        }
+
+        function saveCheckedWords(skipCloud = false) {
+            try {
+                localStorage.setItem(CHECKED_STORAGE_KEY, JSON.stringify(checkedWords));
+            } catch (e) {}
+            saveToWindowName();
+            if (!skipCloud && window.cloudSync && typeof window.cloudSync.save === 'function') {
+                window.cloudSync.save(userProgress, checkedWords);
+            }
+        }
+
+        function saveToWindowName() {
+            try {
+                window.name = 'CJV315_STATE:' + JSON.stringify({
+                    progress: userProgress,
+                    checked: checkedWords
+                });
             } catch (e) {}
         }
 
-        function toggleWordCheck(wordId) {
+        function toggleWordCheck(wordId, event) {
+            if (event) event.stopPropagation();
             if (checkedWords[wordId]) {
                 delete checkedWords[wordId];
             } else {
@@ -1170,146 +1117,121 @@
 
         function updateCheckedBadges() {
             const count = Object.keys(checkedWords).filter(id => checkedWords[id]).length;
-            const badge = document.getElementById('badge-checked-count');
-            const filterCount = document.getElementById('filter-checked-count');
-            const desc = document.getElementById('desc-checked');
-            if (badge) badge.textContent = `${count}語`;
-            if (filterCount) filterCount.textContent = count;
-            if (desc) {
-                desc.textContent = count > 0
-                    ? `★チェックをつけた ${count}語 からランダム出題`
-                    : `★チェックをつけた単語から出題します`;
-            }
+            const badgeEl = document.getElementById('badge-checked-count');
+            const filterEl = document.getElementById('filter-checked-count');
+            if (badgeEl) badgeEl.textContent = `${count}語`;
+            if (filterEl) filterEl.textContent = count;
         }
 
-        function initApp() {
-            loadProgress();
-            loadCheckedWords();
-            updateDashboard();
-            renderStageGrid();
-            setupKeyboardShortcuts();
-            lucide.createIcons();
-        }
-
-        function switchTab(tabName) {
-            stopTimer();
-            ['stages', 'quiz', 'result', 'dict'].forEach(v => {
-                document.getElementById(`view-${v}`).classList.add('hidden');
-            });
-            document.getElementById(`view-${tabName}`).classList.remove('hidden');
-
-            const navStages = document.getElementById('nav-stages');
-            const navDict = document.getElementById('nav-dict');
-            if (tabName === 'dict') {
-                navDict.className = 'px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition flex items-center gap-1.5 bg-white text-indigo-950 shadow-sm';
-                navStages.className = 'px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition flex items-center gap-1.5 text-slate-600 hover:text-slate-900';
-                renderDictionary();
-            } else {
-                navStages.className = 'px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition flex items-center gap-1.5 bg-white text-indigo-950 shadow-sm';
-                navDict.className = 'px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition flex items-center gap-1.5 text-slate-600 hover:text-slate-900';
-                updateDashboard();
-                renderStageGrid();
-            }
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+        function clearAllChecked() {
+            Object.keys(checkedWords).forEach(k => delete checkedWords[k]);
+            saveCheckedWords();
+            updateCheckedBadges();
+            renderDictionary();
+            showToast('すべての★チェックを解除しました');
         }
 
         /**
-         * ダッシュボードの集計値とプログレスバーを更新
+         * ============================================================================
+         * 4. 画面切り替え・ダッシュボード更新
+         * ============================================================================
          */
-        function updateDashboard() {
-            let masteredCount = 0;
-            let learningCount = 0;
+        function switchTab(tabName) {
+            stopTimer();
+            ['view-stages', 'view-quiz', 'view-result', 'view-dict'].forEach(id => {
+                document.getElementById(id).classList.add('hidden');
+            });
+
+            const navStages = document.getElementById('nav-stages');
+            const navDict = document.getElementById('nav-dict');
+            navStages.className = 'px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition flex items-center gap-1.5 text-slate-600 hover:text-slate-900';
+            navDict.className = 'px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition flex items-center gap-1.5 text-slate-600 hover:text-slate-900';
+
+            if (tabName === 'stages') {
+                document.getElementById('view-stages').classList.remove('hidden');
+                navStages.className = 'px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition flex items-center gap-1.5 bg-white text-indigo-950 shadow-sm';
+                updateDashboardStats();
+                renderStageGrid();
+                updateCheckedBadges();
+            } else if (tabName === 'dict') {
+                document.getElementById('view-dict').classList.remove('hidden');
+                navDict.className = 'px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition flex items-center gap-1.5 bg-white text-indigo-950 shadow-sm';
+                updateCheckedBadges();
+                renderDictionary();
+            }
+            lucide.createIcons();
+        }
+
+        function updateDashboardStats() {
+            let mastered = 0;
+            let learning = 0;
+            let unlearned = 0;
 
             KOBUN_WORDS.forEach(w => {
-                const p = userProgress[w.id];
-                if (p.mastered) {
-                    masteredCount++;
-                } else if (p.streak === 1) {
-                    learningCount++;
+                const st = userProgress[w.id];
+                if (st && st.mastered) {
+                    mastered++;
+                } else if (st && st.streak === 1) {
+                    learning++;
+                } else {
+                    unlearned++;
                 }
             });
 
             const total = KOBUN_WORDS.length;
-            const masteredPct = ((masteredCount / total) * 100).toFixed(1);
-            const learningPct = ((learningCount / total) * 100).toFixed(1);
+            const percent = ((mastered / total) * 100).toFixed(1);
 
-            document.getElementById('stat-mastered').textContent = masteredCount;
-            document.getElementById('stat-mastered-sub').textContent = masteredCount;
-            document.getElementById('stat-learning').textContent = learningCount;
-            document.getElementById('stat-unlearned').textContent = total - masteredCount;
-            document.getElementById('stat-percent').textContent = masteredPct;
+            document.getElementById('stat-mastered').textContent = mastered;
+            document.getElementById('stat-learning').textContent = learning;
+            document.getElementById('stat-unlearned').textContent = unlearned;
+            document.getElementById('stat-percent').textContent = percent;
+            document.getElementById('stat-mastered-sub').textContent = mastered;
 
-            document.getElementById('bar-mastered').style.width = `${masteredPct}%`;
-            document.getElementById('bar-learning').style.width = `${learningPct}%`;
-
-            // スペシャルモードボタンの説明更新
-            const notMasteredTotal = total - masteredCount;
-            document.getElementById('desc-unlearned').textContent =
-                notMasteredTotal > 0
-                    ? `未習得 ${notMasteredTotal}語 からランダムに最大10問出題`
-                    : `全315語を習得済みです！素晴らしい！`;
-
-            document.getElementById('desc-mastered').textContent =
-                masteredCount > 0
-                    ? `習得済み ${masteredCount}語 からランダムに最大10問復習`
-                    : `まだ習得済みの単語がありません（2回連続正解で習得）`;
-
-            updateCheckedBadges();
+            document.getElementById('bar-mastered').style.width = `${(mastered / total) * 100}%`;
+            document.getElementById('bar-learning').style.width = `${(learning / total) * 100}%`;
         }
 
         /**
-         * 32ステージのグリッドカードを描画
+         * 21ステージのグリッドカードを描画
          */
         function renderStageGrid() {
             const grid = document.getElementById('stage-grid');
             grid.innerHTML = '';
 
             for (let s = 1; s <= TOTAL_STAGES; s++) {
-                const startIdx = (s - 1) * 10;
-                const stageWords = KOBUN_WORDS.slice(startIdx, startIdx + 10);
+                const startIdx = (s - 1) * STAGE_SIZE;
+                const stageWords = KOBUN_WORDS.slice(startIdx, startIdx + STAGE_SIZE);
                 const wordCount = stageWords.length;
                 const masteredInStage = stageWords.filter(w => userProgress[w.id].mastered).length;
-                const learningInStage = stageWords.filter(w => !userProgress[w.id].mastered && userProgress[w.id].streak === 1).length;
-                const isAllMastered = masteredInStage === wordCount;
-
-                const firstNo = stageWords[0].id;
-                const lastNo = stageWords[stageWords.length - 1].id;
+                const isComplete = masteredInStage === wordCount;
+                const startNo = stageWords[0].id;
+                const endNo = stageWords[stageWords.length - 1].id;
 
                 const card = document.createElement('button');
                 card.onclick = () => startStageQuiz(s);
-                card.className = isAllMastered
-                    ? 'group relative bg-emerald-50/80 hover:bg-emerald-50 border-2 border-emerald-400 rounded-2xl p-4 text-left transition shadow-2xs hover:shadow-md flex flex-col justify-between'
-                    : 'group relative bg-white hover:bg-indigo-50/40 border border-stone-200 hover:border-indigo-400 rounded-2xl p-4 text-left transition shadow-2xs hover:shadow-md flex flex-col justify-between';
-
-                // 10語それぞれの習得ドットインジケータ
-                const dotsHtml = stageWords.map(w => {
-                    const p = userProgress[w.id];
-                    if (p.mastered) return '<span class="w-2 h-2 rounded-full bg-emerald-500"></span>';
-                    if (p.streak === 1) return '<span class="w-2 h-2 rounded-full bg-amber-400"></span>';
-                    return '<span class="w-2 h-2 rounded-full bg-stone-200"></span>';
-                }).join('');
+                card.className = `group relative p-3.5 rounded-2xl border text-left transition shadow-2xs hover:shadow-md flex flex-col justify-between ${
+                    isComplete
+                        ? 'bg-emerald-50/70 border-emerald-300 hover:border-emerald-500'
+                        : 'bg-white border-stone-200 hover:border-indigo-400'
+                }`;
 
                 card.innerHTML = `
-                    <div class="flex items-start justify-between w-full mb-2">
-                        <div>
-                            <span class="text-[11px] font-bold tracking-wider uppercase ${isAllMastered ? 'text-emerald-700' : 'text-indigo-700'}">STAGE ${s}</span>
-                            <div class="font-serif font-extrabold text-base text-slate-900 mt-0.5">
-                                No.${firstNo}〜${lastNo}
-                            </div>
-                        </div>
-                        ${isAllMastered
-                            ? '<span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-500 text-white shadow-2xs">制覇</span>'
-                            : `<span class="text-xs font-bold text-slate-500">${masteredInStage}/${wordCount}</span>`
+                    <div class="flex items-center justify-between w-full mb-1.5">
+                        <span class="text-xs font-black ${isComplete ? 'text-emerald-800' : 'text-indigo-950'}">
+                            STAGE ${s}
+                        </span>
+                        ${isComplete
+                            ? '<span class="px-1.5 py-0.5 rounded-md bg-emerald-500 text-white text-[10px] font-black">COMPLETE</span>'
+                            : `<span class="text-[11px] font-bold text-slate-400">No.${startNo}〜${endNo}</span>`
                         }
                     </div>
-
-                    <div class="space-y-2 mt-2">
-                        <div class="flex items-center gap-1 flex-wrap">
-                            ${dotsHtml}
+                    <div class="mt-2">
+                        <div class="flex justify-between items-center text-xs mb-1">
+                            <span class="text-slate-500 font-medium">習得</span>
+                            <span class="font-black ${isComplete ? 'text-emerald-700' : 'text-slate-800'}">${masteredInStage} / ${wordCount}</span>
                         </div>
-                        <div class="text-[11px] text-slate-400 flex justify-between items-center">
-                            <span>${learningInStage > 0 ? `あと1回: ${learningInStage}語` : (isAllMastered ? 'パーフェクト！' : `全${wordCount}語`)}</span>
-                            <span class="font-bold text-indigo-700 group-hover:translate-x-0.5 transition">挑戦 →</span>
+                        <div class="w-full h-1.5 bg-stone-100 rounded-full overflow-hidden">
+                            <div class="h-full ${isComplete ? 'bg-emerald-500' : 'bg-indigo-600'} transition-all duration-300" style="width: ${(masteredInStage / wordCount) * 100}%"></div>
                         </div>
                     </div>
                 `;
@@ -1319,7 +1241,7 @@
 
         /**
          * ============================================================================
-         * 4. クイズロジック（出題・9択生成・20秒タイマー・2回連続習得判定）
+         * 5. クイズ出題・タイマー・正誤判定ロジック
          * ============================================================================
          */
         function shuffleArray(arr) {
@@ -1335,234 +1257,237 @@
          * 指定ステージのクイズを開始
          */
         function startStageQuiz(stageNum) {
-            const startIdx = (stageNum - 1) * 10;
-            const stageWords = KOBUN_WORDS.slice(startIdx, startIdx + 10);
+            const startIdx = (stageNum - 1) * STAGE_SIZE;
+            const stageWords = KOBUN_WORDS.slice(startIdx, startIdx + STAGE_SIZE);
 
             quizState = {
                 mode: 'stage',
                 stageNum: stageNum,
-                randomCount: 10,
+                title: `ステージ ${stageNum}`,
                 questions: shuffleArray(stageWords),
                 currentIndex: 0,
-                choices: [],
-                correctChoiceIndex: -1,
-                isAnswered: false,
+                correctCount: 0,
+                promotedCount: 0,
+                demotedCount: 0,
+                history: [],
+                answered: false,
                 timerId: null,
                 timeLeft: TIME_LIMIT_SEC,
-                results: []
+                currentChoices: []
             };
-
-            document.getElementById('quiz-mode-label').textContent = `ステージ ${stageNum}`;
-            launchQuizView();
+            beginQuizSession();
         }
 
-        /**
-         * 全315語から指定問題数（10, 25, 50, 100）をランダム出題
-         */
-        function startAllRandomQuiz(count) {
-            const selected = shuffleArray(KOBUN_WORDS).slice(0, count);
-
-            quizState = {
-                mode: 'all_random',
-                stageNum: null,
-                randomCount: count,
-                questions: selected,
-                currentIndex: 0,
-                choices: [],
-                correctChoiceIndex: -1,
-                isAnswered: false,
-                timerId: null,
-                timeLeft: TIME_LIMIT_SEC,
-                results: []
-            };
-
-            document.getElementById('quiz-mode-label').textContent = `全315語ランダム (${count}題)`;
-            launchQuizView();
-        }
-
-        /**
-         * スペシャルモード（未習得集中 / 習得済み復習 / チェック済み）のクイズ開始
-         */
-        function startSpecialQuiz(modeType) {
+        function startSpecialQuiz(mode) {
             let pool = [];
-            if (modeType === 'unlearned') {
+            let title = '';
+            if (mode === 'unlearned') {
                 pool = KOBUN_WORDS.filter(w => !userProgress[w.id].mastered);
                 if (pool.length === 0) {
-                    showToast('おめでとうございます！現在すべての315語が習得済みです！');
+                    showToast('すべての単語を習得済みです！素晴らしい！');
                     return;
                 }
-            } else if (modeType === 'mastered') {
+                pool = shuffleArray(pool).slice(0, 10);
+                title = '未習得集中モード';
+            } else if (mode === 'mastered') {
                 pool = KOBUN_WORDS.filter(w => userProgress[w.id].mastered);
                 if (pool.length === 0) {
-                    showToast('まだ習得済みの単語がありません。まずはステージに挑戦しましょう！');
+                    showToast('まだ習得済みの単語がありません');
                     return;
                 }
-            } else if (modeType === 'checked') {
-                pool = KOBUN_WORDS.filter(w => !!checkedWords[w.id]);
+                pool = shuffleArray(pool).slice(0, 10);
+                title = '習得済み記憶チェック';
+            } else if (mode === 'checked') {
+                pool = KOBUN_WORDS.filter(w => checkedWords[w.id]);
                 if (pool.length === 0) {
-                    showToast('チェック済みの単語がありません。単語一覧や問題画面で★をつけてください！');
+                    showToast('★チェックをつけた単語がありません');
                     return;
                 }
+                pool = shuffleArray(pool);
+                title = `チェック済み単語 (${pool.length}題)`;
             }
 
-            const selected = modeType === 'checked'
-                ? shuffleArray(pool)
-                : shuffleArray(pool).slice(0, 10);
-
             quizState = {
-                mode: modeType,
+                mode: mode,
                 stageNum: null,
-                randomCount: 10,
-                questions: selected,
+                title: title,
+                questions: pool,
                 currentIndex: 0,
-                choices: [],
-                correctChoiceIndex: -1,
-                isAnswered: false,
+                correctCount: 0,
+                promotedCount: 0,
+                demotedCount: 0,
+                history: [],
+                answered: false,
                 timerId: null,
                 timeLeft: TIME_LIMIT_SEC,
-                results: []
+                currentChoices: []
             };
+            beginQuizSession();
+        }
 
-            const modeLabels = {
-                unlearned: '未習得単語 集中特訓',
-                mastered: '習得済み単語 記憶チェック',
-                checked: `チェック済み単語 (${selected.length}語)`
+        function startAllRandomQuiz(count) {
+            const pool = shuffleArray(KOBUN_WORDS).slice(0, count);
+            quizState = {
+                mode: 'random',
+                randomCount: count,
+                stageNum: null,
+                title: `全315語ランダム (${count}題)`,
+                questions: pool,
+                currentIndex: 0,
+                correctCount: 0,
+                promotedCount: 0,
+                demotedCount: 0,
+                history: [],
+                answered: false,
+                timerId: null,
+                timeLeft: TIME_LIMIT_SEC,
+                currentChoices: []
             };
-            document.getElementById('quiz-mode-label').textContent = modeLabels[modeType];
-            launchQuizView();
+            beginQuizSession();
         }
 
         function retryCurrentQuiz() {
-            if (quizState.mode === 'stage') {
+            if (quizState.mode === 'stage' && quizState.stageNum) {
                 startStageQuiz(quizState.stageNum);
-            } else if (quizState.mode === 'all_random') {
+            } else if (quizState.mode === 'random' && quizState.randomCount) {
                 startAllRandomQuiz(quizState.randomCount);
             } else {
                 startSpecialQuiz(quizState.mode);
             }
         }
 
-        function launchQuizView() {
-            ['stages', 'result', 'dict'].forEach(v => document.getElementById(`view-${v}`).classList.add('hidden'));
+        function beginQuizSession() {
+            ['view-stages', 'view-result', 'view-dict'].forEach(id => {
+                document.getElementById(id).classList.add('hidden');
+            });
             document.getElementById('view-quiz').classList.remove('hidden');
+            document.getElementById('quiz-mode-label').textContent = quizState.title;
             document.getElementById('quiz-q-total').textContent = quizState.questions.length;
             renderCurrentQuestion();
         }
 
-        /**
-         * 現在の問題と9択ボタン（1〜8: 意味, 9: わからない）を生成・描画
-         */
+        function quitQuiz() {
+            stopTimer();
+            switchTab('stages');
+        }
+
         function renderCurrentQuestion() {
             stopTimer();
-            quizState.isAnswered = false;
+            quizState.answered = false;
             quizState.timeLeft = TIME_LIMIT_SEC;
 
-            const currentWord = quizState.questions[quizState.currentIndex];
-            const prog = userProgress[currentWord.id];
+            const qWord = quizState.questions[quizState.currentIndex];
+            const prog = userProgress[qWord.id];
 
-            // ヘッダー更新
             document.getElementById('quiz-q-num').textContent = quizState.currentIndex + 1;
+            document.getElementById('word-reading').textContent = `No.${qWord.id}　${qWord.reading}`;
+            document.getElementById('word-display').textContent = qWord.word;
 
-            // 単語の現在のステータス表示（見出し番号も表示）
+            // チェックボタン状態更新
+            updateQuizCheckButton(qWord.id);
+
+            // 習得ステータスバッジ更新
             const badge = document.getElementById('word-status-badge');
             if (prog.mastered) {
-                badge.className = 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200';
-                badge.innerHTML = `<span class="font-mono text-[11px] bg-emerald-200/80 px-1.5 rounded">No.${currentWord.id}</span> <span class="w-2 h-2 rounded-full bg-emerald-500"></span> 習得済み（誤答で未習得へ降格）`;
+                badge.className = 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800';
+                badge.textContent = '★ 習得済み（誤答で未習得に降格）';
             } else if (prog.streak === 1) {
-                badge.className = 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-200';
-                badge.innerHTML = `<span class="font-mono text-[11px] bg-amber-200/80 px-1.5 rounded">No.${currentWord.id}</span> <span class="w-2 h-2 rounded-full bg-amber-500"></span> 習得中（連続正解: 1/2 — あと1回で習得！）`;
+                badge.className = 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800';
+                badge.textContent = '習得中（連続正解: 1/2・あと1回で習得！）';
             } else {
-                badge.className = 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-600 border border-slate-200';
-                badge.innerHTML = `<span class="font-mono text-[11px] bg-slate-200/80 px-1.5 rounded">No.${currentWord.id}</span> <span class="w-2 h-2 rounded-full bg-slate-400"></span> 未習得（連続正解: 0/2）`;
+                badge.className = 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-600';
+                badge.textContent = '未習得（連続正解: 0/2）';
             }
 
-            // 単語と読みを表示
-            document.getElementById('word-reading').textContent = currentWord.reading;
-            document.getElementById('word-display').textContent = currentWord.word;
+            // 8択の選択肢を作成（正解1つ + ダミー7つ）
+            const distractors = shuffleArray(KOBUN_WORDS.filter(w => w.id !== qWord.id)).slice(0, 7);
+            const eightChoices = shuffleArray([qWord, ...distractors]);
+            quizState.currentChoices = eightChoices;
 
-            // クイズ中のチェックボタン状態更新
-            updateQuizCheckButton(currentWord.id);
-
-            // 8択の選択肢を作成（正解1つ + 他の単語から重複しないダミー7つ）
-            const otherMeaningsPool = KOBUN_WORDS
-                .filter(w => w.id !== currentWord.id && w.meaning !== currentWord.meaning)
-                .map(w => w.meaning);
-
-            const uniqueDummyPool = [...new Set(otherMeaningsPool)];
-            const dummies = shuffleArray(uniqueDummyPool).slice(0, 7);
-
-            const eightChoices = shuffleArray([currentWord.meaning, ...dummies]);
-            quizState.choices = eightChoices;
-            quizState.correctChoiceIndex = eightChoices.indexOf(currentWord.meaning); // 0〜7
-
-            // フィードバックパネルを隠す
-            const fbPanel = document.getElementById('feedback-panel');
-            fbPanel.classList.add('hidden');
-
-            // 選択肢ボタン描画（1〜8 + 9番：わからない）
             const grid = document.getElementById('choices-grid');
             grid.innerHTML = '';
 
-            eightChoices.forEach((meaningText, idx) => {
+            eightChoices.forEach((choiceWord, idx) => {
                 const num = idx + 1;
                 const btn = document.createElement('button');
-                btn.id = `choice-btn-${idx}`;
+                btn.type = 'button';
+                btn.dataset.choiceIndex = idx;
                 btn.onclick = () => handleAnswer(idx);
-                btn.className = 'choice-btn flex items-center gap-3 p-3.5 rounded-xl bg-white hover:bg-indigo-50/70 border-2 border-stone-200 hover:border-indigo-400 text-left shadow-2xs focus:outline-none';
+                btn.className = 'choice-btn w-full text-left p-3.5 rounded-xl bg-white hover:bg-indigo-50/70 border-2 border-stone-200 hover:border-indigo-400 flex items-start gap-3 shadow-2xs';
                 btn.innerHTML = `
-                    <span class="w-7 h-7 rounded-lg bg-stone-100 text-slate-700 font-black text-xs flex items-center justify-center shrink-0 border border-stone-200">
-                        ${num}
-                    </span>
-                    <span class="text-xs sm:text-sm font-bold text-slate-800 leading-snug">
-                        ${meaningText}
-                    </span>
+                    <span class="w-6 h-6 rounded-lg bg-stone-100 text-slate-700 font-black text-xs flex items-center justify-center shrink-0 mt-0.5">${num}</span>
+                    <span class="text-xs sm:text-sm font-bold text-slate-800 leading-snug">${choiceWord.meaning}</span>
                 `;
                 grid.appendChild(btn);
             });
 
-            // 9番：わからない（固定・全幅配置）
+            // 9番「わからない」ボタンを追加
             const unknownBtn = document.createElement('button');
-            unknownBtn.id = 'choice-btn-8';
+            unknownBtn.type = 'button';
+            unknownBtn.dataset.choiceIndex = 8;
             unknownBtn.onclick = () => handleAnswer(8);
-            unknownBtn.className = 'choice-btn sm:col-span-2 flex items-center justify-center gap-2.5 p-3.5 rounded-xl bg-stone-100 hover:bg-stone-200/80 border-2 border-stone-300/80 text-slate-600 font-bold text-sm transition focus:outline-none mt-1';
+            unknownBtn.className = 'choice-btn sm:col-span-2 w-full text-left p-3.5 rounded-xl bg-stone-100/90 hover:bg-rose-50 border-2 border-stone-300 hover:border-rose-300 flex items-center justify-center gap-2.5 shadow-2xs';
             unknownBtn.innerHTML = `
-                <span class="w-7 h-7 rounded-lg bg-white text-slate-600 font-black text-xs flex items-center justify-center border border-stone-300">
-                    9
-                </span>
-                <span>わからない（パスして正解を確認）</span>
+                <span class="w-6 h-6 rounded-lg bg-slate-700 text-white font-black text-xs flex items-center justify-center shrink-0">9</span>
+                <span class="text-xs sm:text-sm font-bold text-slate-700">わからない（パスして正解を見る）</span>
             `;
             grid.appendChild(unknownBtn);
 
-            // タイマー開始
+            document.getElementById('feedback-panel').classList.add('hidden');
+            lucide.createIcons();
             startTimer();
+        }
+
+        function toggleCurrentQuizWordCheck() {
+            const qWord = quizState.questions[quizState.currentIndex];
+            if (!qWord) return;
+            toggleWordCheck(qWord.id);
+            updateQuizCheckButton(qWord.id);
+        }
+
+        function updateQuizCheckButton(wordId) {
+            const btn = document.getElementById('btn-quiz-check');
+            if (!btn) return;
+            const isChecked = Boolean(checkedWords[wordId]);
+            if (isChecked) {
+                btn.className = 'absolute top-3.5 right-3.5 p-2 rounded-xl border border-amber-300 bg-amber-50 text-amber-500 transition focus:outline-none';
+                btn.innerHTML = '<i data-lucide="star" class="w-5 h-5 fill-amber-400 text-amber-500"></i>';
+            } else {
+                btn.className = 'absolute top-3.5 right-3.5 p-2 rounded-xl border border-stone-200 bg-stone-50/80 hover:bg-amber-50 text-slate-400 transition focus:outline-none';
+                btn.innerHTML = '<i data-lucide="star" class="w-5 h-5"></i>';
+            }
             lucide.createIcons();
         }
 
-        /**
-         * 20秒カウントダウンタイマー
-         */
         function startTimer() {
             const startTime = Date.now();
-            const durationMs = TIME_LIMIT_SEC * 1000;
+            const timerText = document.getElementById('timer-text');
+            const timerBar = document.getElementById('timer-bar');
 
-            updateTimerUI(TIME_LIMIT_SEC);
+            timerText.textContent = `${TIME_LIMIT_SEC.toFixed(1)}秒`;
+            timerBar.style.width = '100%';
+            timerBar.className = 'h-full bg-indigo-600 transition-all duration-75 ease-linear';
 
             quizState.timerId = setInterval(() => {
-                if (quizState.isAnswered) {
-                    stopTimer();
-                    return;
-                }
-                const elapsed = Date.now() - startTime;
-                const remaining = Math.max(0, (durationMs - elapsed) / 1000);
+                const elapsed = (Date.now() - startTime) / 1000;
+                const remaining = Math.max(0, TIME_LIMIT_SEC - elapsed);
                 quizState.timeLeft = remaining;
 
-                updateTimerUI(remaining);
+                timerText.textContent = `${remaining.toFixed(1)}秒`;
+                const pct = (remaining / TIME_LIMIT_SEC) * 100;
+                timerBar.style.width = `${pct}%`;
+
+                if (remaining <= 5) {
+                    timerBar.className = 'h-full bg-rose-500 transition-all duration-75 ease-linear';
+                } else if (remaining <= 10) {
+                    timerBar.className = 'h-full bg-amber-500 transition-all duration-75 ease-linear';
+                }
 
                 if (remaining <= 0) {
                     stopTimer();
-                    handleAnswer(-1); // 時間切れは -1 として不正解処理
+                    handleAnswer(-1); // 時間切れ
                 }
-            }, 50);
+            }, 80);
         }
 
         function stopTimer() {
@@ -1572,376 +1497,253 @@
             }
         }
 
-        function updateTimerUI(seconds) {
-            const pct = (seconds / TIME_LIMIT_SEC) * 100;
-            const bar = document.getElementById('timer-bar');
-            const text = document.getElementById('timer-text');
-
-            bar.style.width = `${pct}%`;
-            text.textContent = `${seconds.toFixed(1)}秒`;
-
-            if (seconds <= 5) {
-                bar.className = 'h-full bg-rose-500 transition-all duration-75 ease-linear';
-                text.className = 'font-mono text-sm font-black text-rose-600 animate-pulse';
-            } else if (seconds <= 10) {
-                bar.className = 'h-full bg-amber-500 transition-all duration-75 ease-linear';
-                text.className = 'font-mono text-sm font-bold text-amber-600';
-            } else {
-                bar.className = 'h-full bg-indigo-600 transition-all duration-75 ease-linear';
-                text.className = 'font-mono text-sm font-bold text-indigo-900';
-            }
-        }
-
-        /**
-         * 回答処理と習得ロジックの判定
-         * @param {number} selectedIdx 0〜7:選択肢1〜8, 8:わからない(9番), -1:時間切れ
-         */
-        function handleAnswer(selectedIdx) {
-            if (quizState.isAnswered) return;
-            quizState.isAnswered = true;
+        function handleAnswer(selectedIndex) {
+            if (quizState.answered) return;
+            quizState.answered = true;
             stopTimer();
 
-            const currentWord = quizState.questions[quizState.currentIndex];
-            const prevProg = { ...userProgress[currentWord.id] };
-            const isTimeout = selectedIdx === -1;
-            const isUnknown = selectedIdx === 8;
-            const isCorrect = selectedIdx === quizState.correctChoiceIndex;
+            const qWord = quizState.questions[quizState.currentIndex];
+            const prevProg = { ...userProgress[qWord.id] };
 
-            let statusChange = 'stay_unlearned';
+            const isCorrect =
+                selectedIndex >= 0 &&
+                selectedIndex < 8 &&
+                quizState.currentChoices[selectedIndex].id === qWord.id;
+
+            let statusChangeText = '';
+            let statusChangeClass = '';
 
             if (isCorrect) {
+                quizState.correctCount++;
                 if (prevProg.mastered) {
-                    // すでに習得済み → 維持
-                    userProgress[currentWord.id] = { streak: 2, mastered: true };
-                    statusChange = 'stay_mastered';
+                    statusChangeText = '習得済みキープ！';
+                    statusChangeClass = 'bg-emerald-100 text-emerald-800';
                 } else {
-                    const newStreak = prevProg.streak + 1;
-                    if (newStreak >= 2) {
-                        // 2回連続正解 → 習得済みに昇格！
-                        userProgress[currentWord.id] = { streak: 2, mastered: true };
-                        statusChange = 'promoted';
+                    const nextStreak = prevProg.streak + 1;
+                    if (nextStreak >= 2) {
+                        userProgress[qWord.id] = { streak: 2, mastered: true };
+                        quizState.promotedCount++;
+                        statusChangeText = '🎉 2回連続正解で「習得済み」に昇格！';
+                        statusChangeClass = 'bg-emerald-500 text-white';
                     } else {
-                        // 1回目正解 → 習得中(1/2)
-                        userProgress[currentWord.id] = { streak: 1, mastered: false };
-                        statusChange = 'progress';
+                        userProgress[qWord.id] = { streak: 1, mastered: false };
+                        statusChangeText = '連続正解 1/2（あと1回で習得！）';
+                        statusChangeClass = 'bg-amber-100 text-amber-800';
                     }
                 }
             } else {
-                // 不正解・9番わからない・時間切れ → 連続正解リセット＆未習得へ
-                userProgress[currentWord.id] = { streak: 0, mastered: false };
+                userProgress[qWord.id] = { streak: 0, mastered: false };
                 if (prevProg.mastered) {
-                    statusChange = 'demoted';
+                    quizState.demotedCount++;
+                    statusChangeText = '⚠ 習得済みから「未習得」に降格';
+                    statusChangeClass = 'bg-rose-600 text-white';
                 } else {
-                    statusChange = 'stay_unlearned';
+                    statusChangeText = '連続正解リセット (0/2)';
+                    statusChangeClass = 'bg-slate-200 text-slate-700';
                 }
             }
 
-            // LocalStorageへ即座に保存
             saveProgress();
 
-            // 結果履歴に追加
-            quizState.results.push({
-                wordObj: currentWord,
+            quizState.history.push({
+                word: qWord,
                 isCorrect: isCorrect,
-                statusChange: statusChange
+                wasPromoted: !prevProg.mastered && userProgress[qWord.id].mastered,
+                wasDemoted: prevProg.mastered && !userProgress[qWord.id].mastered,
+                currentStatus: { ...userProgress[qWord.id] }
             });
 
-            // 選択肢ボタンのスタイルを正誤状態に更新
-            for (let i = 0; i <= 8; i++) {
-                const btn = document.getElementById(`choice-btn-${i}`);
-                if (!btn) continue;
+            // ボタンのスタイル更新
+            const buttons = document.querySelectorAll('#choices-grid button');
+            buttons.forEach(btn => {
                 btn.disabled = true;
+                const idx = Number(btn.dataset.choiceIndex);
+                const isThisCorrect = idx < 8 && quizState.currentChoices[idx].id === qWord.id;
+                const isThisSelected = idx === selectedIndex;
 
-                if (i === quizState.correctChoiceIndex) {
-                    // 正解のボタンを強調
-                    btn.className = 'choice-btn flex items-center gap-3 p-3.5 rounded-xl bg-emerald-50 border-2 border-emerald-500 text-left shadow-sm';
-                    btn.querySelector('span:first-child').className = 'w-7 h-7 rounded-lg bg-emerald-600 text-white font-black text-xs flex items-center justify-center shrink-0';
-                } else if (i === selectedIdx && !isCorrect) {
-                    // 誤って選んだボタンを強調
-                    const spanCol = i === 8 ? 'sm:col-span-2 ' : '';
-                    btn.className = `${spanCol}choice-btn flex items-center gap-3 p-3.5 rounded-xl bg-rose-50 border-2 border-rose-400 text-left opacity-95`;
-                    btn.querySelector('span:first-child').className = 'w-7 h-7 rounded-lg bg-rose-600 text-white font-black text-xs flex items-center justify-center shrink-0';
+                if (isThisCorrect) {
+                    btn.className = 'choice-btn w-full text-left p-3.5 rounded-xl bg-emerald-50 border-2 border-emerald-500 flex items-start gap-3 shadow-sm';
+                } else if (isThisSelected) {
+                    btn.className = `${idx === 8 ? 'sm:col-span-2 ' : ''}choice-btn w-full text-left p-3.5 rounded-xl bg-rose-50 border-2 border-rose-500 flex items-start gap-3 animate-shake`;
                 } else {
-                    btn.classList.add('opacity-45');
+                    btn.classList.add('opacity-50');
                 }
-            }
+            });
 
-            // フィードバックパネルの描画
-            renderFeedbackPanel(currentWord, isCorrect, isTimeout, isUnknown, statusChange);
-        }
-
-        function renderFeedbackPanel(wordObj, isCorrect, isTimeout, isUnknown, statusChange) {
-            const panel = document.getElementById('feedback-panel');
-            const resBadge = document.getElementById('fb-result-badge');
-            const changeBadge = document.getElementById('fb-status-change');
-            const meaningEl = document.getElementById('fb-correct-meaning');
-            const nextLabel = document.getElementById('btn-next-label');
-
-            panel.classList.remove('hidden');
-            meaningEl.textContent = wordObj.meaning;
+            // フィードバックパネル表示
+            const fbPanel = document.getElementById('feedback-panel');
+            const fbResultBadge = document.getElementById('fb-result-badge');
+            const fbStatusChange = document.getElementById('fb-status-change');
+            const fbMeaning = document.getElementById('fb-correct-meaning');
 
             if (isCorrect) {
-                panel.className = 'mt-4 rounded-2xl p-5 border-2 border-emerald-400 bg-emerald-50/90 shadow-md animate-pop';
-                resBadge.className = 'inline-flex items-center gap-1 px-3 py-1 rounded-lg text-sm font-black bg-emerald-600 text-white';
-                resBadge.innerHTML = `<i data-lucide="check" class="w-4 h-4"></i> 正解！`;
+                fbPanel.className = 'mt-4 rounded-2xl p-5 border-2 border-emerald-300 bg-emerald-50/70 shadow-md animate-pop';
+                fbResultBadge.className = 'inline-flex items-center gap-1 px-3 py-1 rounded-lg text-sm font-black bg-emerald-600 text-white';
+                fbResultBadge.textContent = '〇 正解！';
             } else {
-                panel.className = 'mt-4 rounded-2xl p-5 border-2 border-rose-300 bg-rose-50/90 shadow-md animate-shake';
-                resBadge.className = 'inline-flex items-center gap-1 px-3 py-1 rounded-lg text-sm font-black bg-rose-600 text-white';
-                if (isTimeout) {
-                    resBadge.innerHTML = `<i data-lucide="clock" class="w-4 h-4"></i> 時間切れ…`;
-                } else if (isUnknown) {
-                    resBadge.innerHTML = `<i data-lucide="help-circle" class="w-4 h-4"></i> わからない`;
-                } else {
-                    resBadge.innerHTML = `<i data-lucide="x" class="w-4 h-4"></i> 不正解…`;
-                }
+                fbPanel.className = 'mt-4 rounded-2xl p-5 border-2 border-rose-300 bg-rose-50/70 shadow-md animate-pop';
+                fbResultBadge.className = 'inline-flex items-center gap-1 px-3 py-1 rounded-lg text-sm font-black bg-rose-600 text-white';
+                fbResultBadge.textContent = selectedIndex === -1 ? '× 時間切れ！' : (selectedIndex === 8 ? 'パス（未習得）' : '× 不正解');
             }
 
-            // ステータス変化通知バッジ
-            if (statusChange === 'promoted') {
-                changeBadge.className = 'inline-flex items-center gap-1 px-3 py-1 rounded-lg text-xs font-black bg-amber-400 text-indigo-950 shadow-2xs';
-                changeBadge.innerHTML = `<i data-lucide="sparkles" class="w-3.5 h-3.5"></i> 2回連続正解！「習得済み」に昇格！`;
-            } else if (statusChange === 'progress') {
-                changeBadge.className = 'inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300';
-                changeBadge.innerHTML = `連続正解 1/2（あと1回連続正解で習得！）`;
-            } else if (statusChange === 'stay_mastered') {
-                changeBadge.className = 'inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-100 text-emerald-800';
-                changeBadge.innerHTML = `習得済みキープ！`;
-            } else if (statusChange === 'demoted') {
-                changeBadge.className = 'inline-flex items-center gap-1 px-3 py-1 rounded-lg text-xs font-black bg-rose-200 text-rose-900';
-                changeBadge.innerHTML = `<i data-lucide="trending-down" class="w-3.5 h-3.5"></i> 習得済みから「未習得」に降格しました…`;
-            } else {
-                changeBadge.className = 'inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-200/80 text-slate-700';
-                changeBadge.innerHTML = `未習得（連続正解: 0/2）`;
-            }
+            fbStatusChange.className = `inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold ${statusChangeClass}`;
+            fbStatusChange.textContent = statusChangeText;
+            fbMeaning.textContent = qWord.meaning;
 
-            // 最終問題かどうかのボタン表記
-            if (quizState.currentIndex + 1 >= quizState.questions.length) {
-                nextLabel.textContent = '結果を見る';
-            } else {
-                nextLabel.textContent = '次の問題へ';
-            }
-
-            lucide.createIcons();
+            const isLast = quizState.currentIndex >= quizState.questions.length - 1;
+            document.getElementById('btn-next-label').textContent = isLast ? '結果を見る' : '次の問題へ';
+            fbPanel.classList.remove('hidden');
         }
 
         function nextQuestion() {
-            if (!quizState.isAnswered) return;
-
-            if (quizState.currentIndex + 1 < quizState.questions.length) {
+            if (quizState.currentIndex < quizState.questions.length - 1) {
                 quizState.currentIndex++;
                 renderCurrentQuestion();
             } else {
-                showResultScreen();
+                showQuizResult();
             }
         }
 
-        function quitQuiz() {
+        function showQuizResult() {
             stopTimer();
-            switchTab('stages');
-        }
-
-        function updateQuizCheckButton(wordId) {
-            const btn = document.getElementById('btn-quiz-check');
-            if (!btn) return;
-            const isChecked = !!checkedWords[wordId];
-            if (isChecked) {
-                btn.className = 'absolute top-3.5 right-3.5 p-2 rounded-xl border border-amber-300 bg-amber-50 text-amber-500 transition focus:outline-none shadow-2xs';
-                btn.innerHTML = `<i data-lucide="star" class="w-5 h-5 fill-amber-400 text-amber-500"></i>`;
-            } else {
-                btn.className = 'absolute top-3.5 right-3.5 p-2 rounded-xl border border-stone-200 bg-stone-50/80 hover:bg-amber-50 text-slate-400 hover:text-amber-500 transition focus:outline-none';
-                btn.innerHTML = `<i data-lucide="star" class="w-5 h-5"></i>`;
-            }
-            lucide.createIcons();
-        }
-
-        function toggleCurrentQuizWordCheck() {
-            const currentWord = quizState.questions[quizState.currentIndex];
-            if (!currentWord) return;
-            toggleWordCheck(currentWord.id);
-            updateQuizCheckButton(currentWord.id);
-            showToast(checkedWords[currentWord.id]
-                ? `No.${currentWord.id}「${currentWord.word}」をチェックしました`
-                : `No.${currentWord.id}「${currentWord.word}」のチェックを外しました`);
-        }
-
-        /**
-         * ============================================================================
-         * 5. リザルト画面
-         * ============================================================================
-         */
-        function showResultScreen() {
-            stopTimer();
-            ['stages', 'quiz', 'dict'].forEach(v => document.getElementById(`view-${v}`).classList.add('hidden'));
+            document.getElementById('view-quiz').classList.add('hidden');
             document.getElementById('view-result').classList.remove('hidden');
 
-            const total = quizState.results.length;
-            const correctCount = quizState.results.filter(r => r.isCorrect).length;
-            const promotedCount = quizState.results.filter(r => r.statusChange === 'promoted').length;
-            const demotedCount = quizState.results.filter(r => r.statusChange === 'demoted').length;
+            document.getElementById('result-title').textContent = `${quizState.title} 結果`;
+            document.getElementById('res-correct').textContent = quizState.correctCount;
+            document.getElementById('res-total').textContent = quizState.questions.length;
+            document.getElementById('res-promoted').textContent = quizState.promotedCount;
+            document.getElementById('res-demoted').textContent = quizState.demotedCount;
 
-            const resultTitles = {
-                stage: `ステージ ${quizState.stageNum} 結果`,
-                unlearned: '未習得集中特訓 結果',
-                mastered: '習得済み復習 結果',
-                all_random: `全315語ランダム (${total}題) 結果`,
-                checked: 'チェック済み単語 結果'
-            };
-            document.getElementById('result-title').textContent = resultTitles[quizState.mode] || '演習結果';
+            const list = document.getElementById('result-word-list');
+            list.innerHTML = '';
 
-            document.getElementById('res-correct').textContent = correctCount;
-            document.getElementById('res-total').textContent = total;
-            document.getElementById('res-promoted').textContent = promotedCount;
-            document.getElementById('res-demoted').textContent = demotedCount;
+            quizState.history.forEach(item => {
+                const w = item.word;
+                const isChecked = Boolean(checkedWords[w.id]);
+                const row = document.createElement('div');
+                row.className = 'p-3 bg-white flex items-center justify-between gap-3';
 
-            const listEl = document.getElementById('result-word-list');
-            listEl.innerHTML = '';
-
-            quizState.results.forEach(item => {
-                const w = item.wordObj;
-                const p = userProgress[w.id];
-                const isChecked = !!checkedWords[w.id];
-
-                let statusPill = '';
-                if (item.statusChange === 'promoted') {
-                    statusPill = `<span class="px-2 py-0.5 rounded-md text-[11px] font-black bg-amber-400 text-indigo-950">新規習得！</span>`;
-                } else if (item.statusChange === 'demoted') {
-                    statusPill = `<span class="px-2 py-0.5 rounded-md text-[11px] font-black bg-rose-100 text-rose-700">未習得へ降格</span>`;
-                } else if (p.mastered) {
-                    statusPill = `<span class="px-2 py-0.5 rounded-md text-[11px] font-bold bg-emerald-100 text-emerald-800">習得済み</span>`;
-                } else if (p.streak === 1) {
-                    statusPill = `<span class="px-2 py-0.5 rounded-md text-[11px] font-bold bg-amber-100 text-amber-800">習得中(1/2)</span>`;
+                let statusBadge = '';
+                if (item.currentStatus.mastered) {
+                    statusBadge = '<span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 shrink-0">習得済み</span>';
+                } else if (item.currentStatus.streak === 1) {
+                    statusBadge = '<span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 shrink-0">1/2 習得中</span>';
                 } else {
-                    statusPill = `<span class="px-2 py-0.5 rounded-md text-[11px] font-bold bg-slate-100 text-slate-600">未習得(0/2)</span>`;
+                    statusBadge = '<span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-slate-100 text-slate-600 shrink-0">未習得</span>';
                 }
 
-                const row = document.createElement('div');
-                row.className = 'p-3 bg-white flex items-center justify-between gap-2.5';
                 row.innerHTML = `
-                    <div class="flex items-center gap-2 min-w-0">
-                        <button onclick="toggleResultWordCheck(${w.id}, this)" title="チェック切り替え" class="p-1.5 rounded-lg hover:bg-amber-50 transition shrink-0 focus:outline-none">
+                    <div class="flex items-center gap-2.5 min-w-0">
+                        <button onclick="toggleResultWordCheck(${w.id}, this)" class="p-1 rounded-lg hover:bg-amber-50 shrink-0" title="チェック切り替え">
                             <i data-lucide="star" class="w-4 h-4 ${isChecked ? 'fill-amber-400 text-amber-500' : 'text-slate-300'}"></i>
                         </button>
-                        <span class="w-6 h-6 rounded-full flex items-center justify-center shrink-0 text-xs font-black ${item.isCorrect ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}">
-                            ${item.isCorrect ? '○' : '×'}
-                        </span>
+                        <span class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-black shrink-0 ${
+                            item.isCorrect ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'
+                        }">${item.isCorrect ? '〇' : '×'}</span>
                         <div class="min-w-0">
-                            <div class="font-bold text-slate-900 text-sm">
-                                <span class="font-mono text-xs text-slate-400 mr-1">No.${w.id}</span>${w.word} <span class="text-xs font-normal text-slate-400">(${w.reading})</span>
+                            <div class="font-bold text-sm text-slate-900 truncate">
+                                <span class="text-xs text-slate-400 mr-1">No.${w.id}</span>${w.word}
+                                <span class="text-xs font-normal text-slate-500 ml-1">(${w.reading})</span>
                             </div>
                             <div class="text-xs text-slate-600 truncate">${w.meaning}</div>
                         </div>
                     </div>
-                    <div class="shrink-0">
-                        ${statusPill}
-                    </div>
+                    ${statusBadge}
                 `;
-                listEl.appendChild(row);
+                list.appendChild(row);
             });
 
             lucide.createIcons();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         function toggleResultWordCheck(wordId, btnEl) {
             toggleWordCheck(wordId);
-            const isChecked = !!checkedWords[wordId];
+            const isChecked = Boolean(checkedWords[wordId]);
             btnEl.innerHTML = `<i data-lucide="star" class="w-4 h-4 ${isChecked ? 'fill-amber-400 text-amber-500' : 'text-slate-300'}"></i>`;
             lucide.createIcons();
         }
 
         /**
          * ============================================================================
-         * 6. 単語一覧（辞書・進捗確認）画面
+         * 6. 単語一覧（辞書）画面ロジック
          * ============================================================================
          */
-        function setDictFilter(filterType) {
-            currentDictFilter = filterType;
+        function setDictFilter(filter) {
+            currentDictFilter = filter;
             document.querySelectorAll('.dict-filter-btn').forEach(btn => {
                 btn.className = 'dict-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 whitespace-nowrap';
             });
-            document.getElementById(`filter-${filterType}`).className =
-                'dict-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-white text-indigo-950 shadow-sm whitespace-nowrap';
+            const activeBtn = document.getElementById(`filter-${filter}`);
+            if (activeBtn) {
+                activeBtn.className = 'dict-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-white text-indigo-950 shadow-sm whitespace-nowrap';
+            }
+
+            const bulkBar = document.getElementById('checked-bulk-bar');
+            if (filter === 'checked') {
+                bulkBar.classList.remove('hidden');
+            } else {
+                bulkBar.classList.add('hidden');
+            }
             renderDictionary();
         }
 
         function renderDictionary() {
-            const query = (document.getElementById('dict-search')?.value || '').trim().toLowerCase();
+            const query = (document.getElementById('dict-search').value || '').trim().toLowerCase();
             const tbody = document.getElementById('dict-tbody');
             tbody.innerHTML = '';
 
-            updateCheckedBadges();
-
-            const bulkBar = document.getElementById('checked-bulk-bar');
-            if (bulkBar) {
-                if (currentDictFilter === 'checked') bulkBar.classList.remove('hidden');
-                else bulkBar.classList.add('hidden');
-            }
-
             const filtered = KOBUN_WORDS.filter(w => {
-                const p = userProgress[w.id];
+                const prog = userProgress[w.id];
                 if (currentDictFilter === 'checked' && !checkedWords[w.id]) return false;
-                if (currentDictFilter === 'mastered' && !p.mastered) return false;
-                if (currentDictFilter === 'learning' && (p.mastered || p.streak !== 1)) return false;
-                if (currentDictFilter === 'unlearned' && (p.mastered || p.streak !== 0)) return false;
+                if (currentDictFilter === 'unlearned' && (prog.mastered || prog.streak > 0)) return false;
+                if (currentDictFilter === 'learning' && (prog.mastered || prog.streak !== 1)) return false;
+                if (currentDictFilter === 'mastered' && !prog.mastered) return false;
 
-                if (query) {
-                    const hit = String(w.id) === query ||
-                                `no.${w.id}`.includes(query) ||
-                                w.word.toLowerCase().includes(query) ||
-                                w.reading.toLowerCase().includes(query) ||
-                                w.meaning.toLowerCase().includes(query) ||
-                                (w.chapter && w.chapter.toLowerCase().includes(query));
-                    if (!hit) return false;
-                }
-                return true;
+                if (!query) return true;
+                return (
+                    String(w.id) === query ||
+                    `no.${w.id}`.includes(query) ||
+                    w.word.toLowerCase().includes(query) ||
+                    w.reading.toLowerCase().includes(query) ||
+                    w.meaning.toLowerCase().includes(query)
+                );
             });
 
             document.getElementById('dict-count').textContent = filtered.length;
 
-            if (filtered.length === 0) {
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="5" class="py-10 text-center text-slate-400 text-sm">
-                            該当する単語が見つかりませんでした
-                        </td>
-                    </tr>
-                `;
-                return;
-            }
-
             filtered.forEach(w => {
-                const p = userProgress[w.id];
-                const isChecked = !!checkedWords[w.id];
-                let badgeHtml = '';
-                if (p.mastered) {
-                    badgeHtml = `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">習得済み</span>`;
-                } else if (p.streak === 1) {
-                    badgeHtml = `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800">あと1回 (1/2)</span>`;
-                } else {
-                    badgeHtml = `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-500">未習得 (0/2)</span>`;
-                }
-
+                const prog = userProgress[w.id];
+                const isChecked = Boolean(checkedWords[w.id]);
                 const tr = document.createElement('tr');
                 tr.className = 'hover:bg-stone-50/80 transition';
+
+                let badgeHtml = '';
+                if (prog.mastered) {
+                    badgeHtml = '<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">習得済み</span>';
+                } else if (prog.streak === 1) {
+                    badgeHtml = '<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800">あと1回 (1/2)</span>';
+                } else {
+                    badgeHtml = '<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-600">未習得</span>';
+                }
+
                 tr.innerHTML = `
                     <td class="py-3 px-2 text-center">
-                        <button onclick="toggleDictWordCheck(${w.id})" title="チェック切り替え" class="p-1.5 rounded-lg hover:bg-amber-50 transition focus:outline-none">
-                            <i data-lucide="star" class="w-4 h-4 ${isChecked ? 'fill-amber-400 text-amber-500' : 'text-slate-300 hover:text-amber-400'}"></i>
+                        <button onclick="toggleDictWordCheck(${w.id})" class="p-1.5 rounded-lg hover:bg-amber-50 transition" title="チェック切り替え">
+                            <i data-lucide="star" class="w-4 h-4 ${isChecked ? 'fill-amber-400 text-amber-500' : 'text-slate-300'}"></i>
                         </button>
                     </td>
-                    <td class="py-3 px-4 font-mono text-xs text-slate-500 font-bold">
-                        <div>No.${w.id}</div>
-                        <div class="text-[10px] font-sans font-normal text-slate-400 mt-0.5">${w.chapter ? w.chapter.split(' ')[0] : ''}</div>
-                    </td>
+                    <td class="py-3 px-4 font-mono text-xs font-bold text-slate-400">No.${w.id}</td>
                     <td class="py-3 px-4">
                         <div class="font-serif font-extrabold text-base text-slate-900">${w.word}</div>
-                        <div class="text-[11px] text-indigo-700 font-medium">${w.reading}</div>
+                        <div class="text-xs text-indigo-700">${w.reading}</div>
                     </td>
-                    <td class="py-3 px-4 text-xs sm:text-sm text-slate-700 leading-relaxed">${w.meaning}</td>
+                    <td class="py-3 px-4 text-xs sm:text-sm text-slate-700 font-medium leading-relaxed">${w.meaning}</td>
                     <td class="py-3 px-4 text-center">${badgeHtml}</td>
                 `;
                 tbody.appendChild(tr);
             });
+
             lucide.createIcons();
         }
 
@@ -1950,54 +1752,111 @@
             renderDictionary();
         }
 
-        function clearAllChecked() {
-            checkedWords = {};
-            saveCheckedWords();
-            renderDictionary();
-            showToast('すべてのチェックを解除しました');
-        }
-
         /**
          * ============================================================================
-         * 7. キーボードショートカット & リセット機能
+         * 7. バックアップコード生成・復元・通知ユーティリティ
          * ============================================================================
          */
-        function setupKeyboardShortcuts() {
-            document.addEventListener('keydown', (e) => {
-                const quizView = document.getElementById('view-quiz');
-                if (quizView.classList.contains('hidden')) return;
+        function generateBackupCode() {
+            const masteredIds = [];
+            const streak1Ids = [];
+            const checkedIds = [];
 
-                // 1〜9キーで回答選択
-                if (!quizState.isAnswered && e.key >= '1' && e.key <= '9') {
-                    e.preventDefault();
-                    const idx = parseInt(e.key, 10) - 1;
-                    handleAnswer(idx);
-                }
-                // Enter または Space で次の問題へ
-                else if (quizState.isAnswered && (e.key === 'Enter' || e.key === ' ')) {
-                    e.preventDefault();
-                    nextQuestion();
-                }
+            KOBUN_WORDS.forEach(w => {
+                const st = userProgress[w.id];
+                if (st && st.mastered) masteredIds.push(w.id);
+                else if (st && st.streak === 1) streak1Ids.push(w.id);
+                if (checkedWords[w.id]) checkedIds.push(w.id);
             });
+
+            const payload = JSON.stringify({
+                v: 1,
+                m: masteredIds,
+                s: streak1Ids,
+                c: checkedIds
+            });
+            return 'CJV315:' + btoa(payload);
+        }
+
+        function openBackupModal() {
+            document.getElementById('backup-code-box').value = generateBackupCode();
+            document.getElementById('backup-modal').classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function closeBackupModal() {
+            document.getElementById('backup-modal').classList.add('hidden');
+        }
+
+        function copyBackupCode() {
+            const box = document.getElementById('backup-code-box');
+            box.value = generateBackupCode();
+            box.select();
+            box.setSelectionRange(0, 99999);
+            try {
+                document.execCommand('copy');
+                showToast('保存コードをクリップボードにコピーしました');
+            } catch (e) {
+                showToast('コードを選択しました。手動でコピーしてください');
+            }
+        }
+
+        function restoreFromBackupCode() {
+            const raw = (document.getElementById('backup-code-box').value || '').trim();
+            if (!raw.startsWith('CJV315:')) {
+                showToast('無効な保存コードです（CJV315: で始まるコードを入力してください）');
+                return;
+            }
+            try {
+                const decoded = JSON.parse(atob(raw.slice('CJV315:'.length)));
+                if (!decoded || decoded.v !== 1) throw new Error('Invalid version');
+
+                KOBUN_WORDS.forEach(w => {
+                    userProgress[w.id] = { streak: 0, mastered: false };
+                });
+                Object.keys(checkedWords).forEach(k => delete checkedWords[k]);
+
+                if (Array.isArray(decoded.m)) {
+                    decoded.m.forEach(id => {
+                        if (userProgress[id]) userProgress[id] = { streak: 2, mastered: true };
+                    });
+                }
+                if (Array.isArray(decoded.s)) {
+                    decoded.s.forEach(id => {
+                        if (userProgress[id] && !userProgress[id].mastered) {
+                            userProgress[id] = { streak: 1, mastered: false };
+                        }
+                    });
+                }
+                if (Array.isArray(decoded.c)) {
+                    decoded.c.forEach(id => {
+                        checkedWords[id] = true;
+                    });
+                }
+
+                saveProgress();
+                saveCheckedWords();
+                updateDashboardStats();
+                renderStageGrid();
+                updateCheckedBadges();
+                renderDictionary();
+                closeBackupModal();
+                showToast('保存コードから学習データを復元しました！');
+            } catch (e) {
+                showToast('保存コードの読み込みに失敗しました。文字が欠けていないか確認してください');
+            }
         }
 
         function showToast(msg) {
             const toast = document.getElementById('toast');
             document.getElementById('toast-msg').textContent = msg;
             toast.classList.remove('hidden');
-            setTimeout(() => {
+            clearTimeout(window._toastTimer);
+            window._toastTimer = setTimeout(() => {
                 toast.classList.add('hidden');
-            }, 3000);
+            }, 2800);
         }
 
-        // ページを閉じる・離れる前の確認ダイアログ（ブラウザ標準メッセージが表示されます）
-        window.addEventListener('beforeunload', (e) => {
-            e.preventDefault();
-            e.returnValue = 'データを保存して';
-            return 'データを保存して';
-        });
-
-        // 起動
         window.addEventListener('DOMContentLoaded', initApp);
     </script>
 </body>
