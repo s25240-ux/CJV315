@@ -203,11 +203,11 @@
                 <nav class="flex bg-stone-100 p-1 rounded-xl border border-stone-200/80">
                     <button id="nav-stages" onclick="switchTab('stages')" class="px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition flex items-center gap-1.5 bg-white text-indigo-950 shadow-sm">
                         <i data-lucide="layers" class="w-4 h-4"></i>
-                        <span>ステージ</span>
+                        <span>Stage</span>
                     </button>
                     <button id="nav-dict" onclick="switchTab('dict')" class="px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition flex items-center gap-1.5 text-slate-600 hover:text-slate-900">
                         <i data-lucide="book-open" class="w-4 h-4"></i>
-                        <span>単語一覧</span>
+                        <span>Words</span>
                     </button>
                 </nav>
                 <button id="btn-theme-toggle" onclick="toggleDarkMode()" title="ダークモード切り替え" class="p-2 rounded-xl bg-stone-100 hover:bg-indigo-50 text-slate-700 border border-stone-200 transition flex items-center justify-center">
@@ -215,7 +215,7 @@
                 </button>
                 <button onclick="openBackupModal()" title="データの引き継ぎ・バックアップ" class="px-2.5 py-1.5 rounded-xl bg-stone-100 hover:bg-indigo-50 text-slate-700 hover:text-indigo-900 border border-stone-200 text-xs font-bold transition flex items-center gap-1">
                     <i data-lucide="save" class="w-3.5 h-3.5 text-indigo-700"></i>
-                    <span class="hidden sm:inline">データ引き継ぎ</span>
+                    <span class="hidden sm:inline">Backup</span>
                 </button>
             </div>
         </div>
@@ -225,155 +225,154 @@
     <main class="flex-1 max-w-5xl w-full mx-auto px-4 py-6">
 
         <!-- ==================== 1. ホーム / ステージ選択画面 ==================== -->
-        <section id="view-stages" class="space-y-6 animate-fade-in">
+        <section id="view-stages" class="space-y-4 animate-fade-in">
             <!-- 全体進捗ダッシュボード -->
-            <div class="bg-white rounded-2xl p-5 sm:p-6 border border-stone-200/90 shadow-sm">
-                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+            <div class="bg-white rounded-2xl p-4 sm:p-5 border border-stone-200/90 shadow-sm">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-2.5 mb-2.5">
                     <div>
-                        <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-50 text-indigo-800 border border-indigo-100 mb-1.5">
-                            <i data-lucide="award" class="w-3.5 h-3.5"></i>
-                            <span>2回連続正解で「習得済み」に昇格！</span>
-                        </div>
-                        <h2 class="text-lg sm:text-xl font-bold text-slate-900">全体の習得状況</h2>
+                        <h2 class="text-base sm:text-lg font-bold text-slate-900">Achievement Rate</h2>
                     </div>
 
                     <!-- ステータス内訳バッジ -->
-                    <div class="flex flex-wrap items-center gap-2 sm:gap-3 text-xs sm:text-sm">
-                        <div class="px-3 py-1.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 font-bold flex items-center gap-1.5">
-                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
-                            習得済み: <span id="stat-mastered" class="text-base">0</span>語
+                    <div class="flex flex-wrap items-center gap-2 text-xs">
+                        <div class="px-2.5 py-1 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 font-bold flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                            Learned: <span id="stat-mastered" class="text-sm">0</span>
                         </div>
-                        <div class="px-3 py-1.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 font-bold flex items-center gap-1.5">
-                            <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
-                            習得中(1/2): <span id="stat-learning" class="text-base">0</span>語
+                        <div class="px-2.5 py-1 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 font-bold flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+                            Learning: <span id="stat-learning" class="text-sm">0</span>
                         </div>
-                        <div class="px-3 py-1.5 rounded-xl bg-slate-100 border border-slate-200 text-slate-700 font-bold flex items-center gap-1.5">
-                            <span class="w-2.5 h-2.5 rounded-full bg-slate-400"></span>
-                            未習得: <span id="stat-unlearned" class="text-base">315</span>語
+                        <div class="px-2.5 py-1 rounded-lg bg-slate-100 border border-slate-200 text-slate-700 font-bold flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-slate-400"></span>
+                            Unlearned: <span id="stat-unlearned" class="text-sm">315</span>
                         </div>
                     </div>
                 </div>
 
                 <!-- プログレスバー -->
-                <div class="space-y-1.5">
-                    <div class="flex justify-between items-end text-sm">
-                        <span class="font-bold text-slate-600">達成率</span>
-                        <span class="font-black text-xl text-indigo-950">
+                <div class="space-y-1">
+                    <div class="flex justify-between items-end text-xs">
+                        <span class="font-bold text-slate-600">Mastery Rate</span>
+                        <span class="font-black text-lg text-indigo-950">
                             <span id="stat-percent">0.0</span><span class="text-xs font-bold text-slate-500 ml-0.5">%</span>
-                            <span class="text-xs font-medium text-slate-400 ml-1">(<span id="stat-mastered-sub">0</span> / 315語)</span>
+                            <span class="text-xs font-medium text-slate-400 ml-1">(<span id="stat-mastered-sub">0</span> / 315)</span>
                         </span>
                     </div>
-                    <div class="w-full h-4 bg-stone-100 rounded-full overflow-hidden border border-stone-200/80 p-0.5 flex">
+                    <div class="w-full h-3 bg-stone-100 rounded-full overflow-hidden border border-stone-200/80 p-0.5 flex">
                         <div id="bar-mastered" class="h-full bg-emerald-500 rounded-l-full transition-all duration-500" style="width: 0%"></div>
                         <div id="bar-learning" class="h-full bg-amber-400 transition-all duration-500" style="width: 0%"></div>
                     </div>
                 </div>
 
                 <!-- スペシャル演習モード -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-5 pt-5 border-t border-stone-100">
-                    <!-- 未習得の単語から集中出題 -->
-                    <div class="p-3.5 rounded-xl bg-gradient-to-r from-indigo-900 to-indigo-800 text-white shadow-sm flex flex-col justify-between gap-2.5">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-lg bg-white/15 flex items-center justify-center shrink-0">
-                                <i data-lucide="flame" class="w-5 h-5 text-amber-300"></i>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mt-3.5 pt-3.5 border-t border-stone-100">
+                    <!-- Unlearned Words -->
+                    <div class="p-3 rounded-xl bg-gradient-to-r from-indigo-900 to-indigo-800 text-white shadow-sm flex flex-col justify-between gap-2">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-8 h-8 rounded-lg bg-white/15 flex items-center justify-center shrink-0">
+                                <i data-lucide="flame" class="w-4 h-4 text-amber-300"></i>
                             </div>
                             <div>
-                                <div class="font-bold text-sm sm:text-base flex items-center gap-1.5">
-                                    未習得の単語から集中出題
+                                <div class="font-bold text-sm flex items-center gap-1.5">
+                                    Unlearned Words
                                 </div>
-                                <div class="text-xs text-indigo-200 mt-0.5" id="desc-unlearned">問題数を選んで未習得単語を集中演習</div>
                             </div>
                         </div>
                         <div class="grid grid-cols-5 gap-1.5">
-                            <button onclick="startSpecialQuiz('unlearned', 10)" class="unlearned-count-btn py-1.5 px-1 rounded-lg bg-white/15 hover:bg-white text-white hover:text-indigo-950 border border-white/20 font-black text-xs transition">10題</button>
-                            <button onclick="startSpecialQuiz('unlearned', 20)" class="unlearned-count-btn py-1.5 px-1 rounded-lg bg-white/15 hover:bg-white text-white hover:text-indigo-950 border border-white/20 font-black text-xs transition">20題</button>
-                            <button onclick="startSpecialQuiz('unlearned', 50)" class="unlearned-count-btn py-1.5 px-1 rounded-lg bg-white/15 hover:bg-white text-white hover:text-indigo-950 border border-white/20 font-black text-xs transition">50題</button>
-                            <button onclick="startSpecialQuiz('unlearned', 100)" class="unlearned-count-btn py-1.5 px-1 rounded-lg bg-white/15 hover:bg-white text-white hover:text-indigo-950 border border-white/20 font-black text-xs transition">100題</button>
-                            <button onclick="startSpecialQuiz('unlearned', 'all')" class="unlearned-count-btn py-1.5 px-1 rounded-lg bg-amber-400 hover:bg-amber-300 text-indigo-950 font-black text-xs transition">全部</button>
+                            <button onclick="startSpecialQuiz('unlearned', 10)" class="unlearned-count-btn py-1 px-1 rounded-lg bg-white/15 hover:bg-white text-white hover:text-indigo-950 border border-white/20 font-black text-xs transition">10</button>
+                            <button onclick="startSpecialQuiz('unlearned', 20)" class="unlearned-count-btn py-1 px-1 rounded-lg bg-white/15 hover:bg-white text-white hover:text-indigo-950 border border-white/20 font-black text-xs transition">20</button>
+                            <button onclick="startSpecialQuiz('unlearned', 50)" class="unlearned-count-btn py-1 px-1 rounded-lg bg-white/15 hover:bg-white text-white hover:text-indigo-950 border border-white/20 font-black text-xs transition">50</button>
+                            <button onclick="startSpecialQuiz('unlearned', 100)" class="unlearned-count-btn py-1 px-1 rounded-lg bg-white/15 hover:bg-white text-white hover:text-indigo-950 border border-white/20 font-black text-xs transition">100</button>
+                            <button onclick="startSpecialQuiz('unlearned', 'all')" class="unlearned-count-btn py-1 px-1 rounded-lg bg-amber-400 hover:bg-amber-300 text-indigo-950 font-black text-xs transition">All</button>
                         </div>
                     </div>
 
-                    <!-- 習得済み単語の記憶チェック -->
-                    <div class="p-3.5 rounded-xl bg-white border-2 border-emerald-600/30 text-slate-800 flex flex-col justify-between gap-2.5">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
-                                <i data-lucide="shield-check" class="w-5 h-5"></i>
+                    <!-- Learned Words -->
+                    <div class="p-3 rounded-xl bg-white border-2 border-emerald-600/30 text-slate-800 flex flex-col justify-between gap-2">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center shrink-0">
+                                <i data-lucide="shield-check" class="w-4 h-4 text-emerald-600"></i>
                             </div>
                             <div>
-                                <div class="font-bold text-sm sm:text-base text-emerald-950">
-                                    習得済み単語の記憶チェック
-                                </div>
-                                <div class="text-xs text-slate-500 mt-0.5" id="desc-mastered">問題数を選んで復習（誤答で未習得へ降格）</div>
+                                <div class="font-bold text-sm text-emerald-950">Learned Words</div>
                             </div>
                         </div>
                         <div class="grid grid-cols-5 gap-1.5">
-                            <button onclick="startSpecialQuiz('mastered', 10)" class="mastered-count-btn py-1.5 px-1 rounded-lg bg-emerald-50 hover:bg-emerald-600 text-emerald-900 hover:text-white border border-emerald-200 font-black text-xs transition">10題</button>
-                            <button onclick="startSpecialQuiz('mastered', 20)" class="mastered-count-btn py-1.5 px-1 rounded-lg bg-emerald-50 hover:bg-emerald-600 text-emerald-900 hover:text-white border border-emerald-200 font-black text-xs transition">20題</button>
-                            <button onclick="startSpecialQuiz('mastered', 50)" class="mastered-count-btn py-1.5 px-1 rounded-lg bg-emerald-50 hover:bg-emerald-600 text-emerald-900 hover:text-white border border-emerald-200 font-black text-xs transition">50題</button>
-                            <button onclick="startSpecialQuiz('mastered', 100)" class="mastered-count-btn py-1.5 px-1 rounded-lg bg-emerald-50 hover:bg-emerald-600 text-emerald-900 hover:text-white border border-emerald-200 font-black text-xs transition">100題</button>
-                            <button onclick="startSpecialQuiz('mastered', 'all')" class="mastered-count-btn py-1.5 px-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs transition">全部</button>
+                            <button onclick="startSpecialQuiz('mastered', 10)" class="mastered-count-btn py-1 px-1 rounded-lg bg-emerald-50 hover:bg-emerald-600 text-emerald-900 hover:text-white border border-emerald-200 font-black text-xs transition">10</button>
+                            <button onclick="startSpecialQuiz('mastered', 20)" class="mastered-count-btn py-1 px-1 rounded-lg bg-emerald-50 hover:bg-emerald-600 text-emerald-900 hover:text-white border border-emerald-200 font-black text-xs transition">20</button>
+                            <button onclick="startSpecialQuiz('mastered', 50)" class="mastered-count-btn py-1 px-1 rounded-lg bg-emerald-50 hover:bg-emerald-600 text-emerald-900 hover:text-white border border-emerald-200 font-black text-xs transition">50</button>
+                            <button onclick="startSpecialQuiz('mastered', 100)" class="mastered-count-btn py-1 px-1 rounded-lg bg-emerald-50 hover:bg-emerald-600 text-emerald-900 hover:text-white border border-emerald-200 font-black text-xs transition">100</button>
+                            <button onclick="startSpecialQuiz('mastered', 'all')" class="mastered-count-btn py-1 px-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs transition">All</button>
+                        </div>
+                    </div>
+
+                    <!-- Random315 -->
+                    <div class="p-3 rounded-xl bg-indigo-50/70 border border-indigo-200/80 flex flex-col justify-between gap-2">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-8 h-8 rounded-lg bg-indigo-900 text-amber-300 flex items-center justify-center shrink-0">
+                                <i data-lucide="shuffle" class="w-4 h-4"></i>
+                            </div>
+                            <div>
+                                <div class="font-bold text-sm text-indigo-950">Random315</div>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-5 gap-1.5">
+                            <button onclick="startAllRandomQuiz(10)" class="py-1 px-1 rounded-lg bg-white hover:bg-indigo-900 text-indigo-950 hover:text-white border border-indigo-200 font-black text-xs transition">10</button>
+                            <button onclick="startAllRandomQuiz(20)" class="py-1 px-1 rounded-lg bg-white hover:bg-indigo-900 text-indigo-950 hover:text-white border border-indigo-200 font-black text-xs transition">20</button>
+                            <button onclick="startAllRandomQuiz(50)" class="py-1 px-1 rounded-lg bg-white hover:bg-indigo-900 text-indigo-950 hover:text-white border border-indigo-200 font-black text-xs transition">50</button>
+                            <button onclick="startAllRandomQuiz(100)" class="py-1 px-1 rounded-lg bg-white hover:bg-indigo-900 text-indigo-950 hover:text-white border border-indigo-200 font-black text-xs transition">100</button>
+                            <button onclick="startAllRandomQuiz(315)" class="py-1 px-1 rounded-lg bg-indigo-900 hover:bg-indigo-800 text-amber-300 font-black text-xs transition">315</button>
+                        </div>
+                    </div>
+
+                    <!-- Saved Words -->
+                    <div class="p-3 rounded-xl bg-amber-50/60 border-2 border-amber-400/50 text-slate-800 flex flex-col justify-between gap-2">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center shrink-0">
+                                <i data-lucide="star" class="w-4 h-4 fill-amber-400 text-amber-500"></i>
+                            </div>
+                            <div>
+                                <div class="font-bold text-sm text-amber-950 flex items-center gap-1.5">
+                                    <span>Saved Words</span>
+                                    <span id="badge-checked-count" class="px-2 py-0.5 rounded-full text-[11px] font-black bg-amber-400 text-indigo-950">0</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-5 gap-1.5">
+                            <button onclick="startSpecialQuiz('checked', 10)" class="checked-count-btn py-1 px-1 rounded-lg bg-white hover:bg-amber-500 text-amber-950 hover:text-white border border-amber-300 font-black text-xs transition">10</button>
+                            <button onclick="startSpecialQuiz('checked', 20)" class="checked-count-btn py-1 px-1 rounded-lg bg-white hover:bg-amber-500 text-amber-950 hover:text-white border border-amber-300 font-black text-xs transition">20</button>
+                            <button onclick="startSpecialQuiz('checked', 50)" class="checked-count-btn py-1 px-1 rounded-lg bg-white hover:bg-amber-500 text-amber-950 hover:text-white border border-amber-300 font-black text-xs transition">50</button>
+                            <button onclick="startSpecialQuiz('checked', 100)" class="checked-count-btn py-1 px-1 rounded-lg bg-white hover:bg-amber-500 text-amber-950 hover:text-white border border-amber-300 font-black text-xs transition">100</button>
+                            <button onclick="startSpecialQuiz('checked', 'all')" class="checked-count-btn py-1 px-1 rounded-lg bg-amber-400 hover:bg-amber-500 text-indigo-950 font-black text-xs transition">All</button>
                         </div>
                     </div>
                 </div>
 
-                <!-- 追加機能: 全315語ランダム出題 & チェック済み単語出題 -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
-                    <!-- 全315語ランダム出題 (10/20/50/100/315題) -->
-                    <div class="p-3.5 rounded-xl bg-indigo-50/70 border border-indigo-200/80 flex flex-col justify-between gap-2.5">
-                        <div class="flex items-center gap-2.5">
-                            <div class="w-9 h-9 rounded-lg bg-indigo-900 text-amber-300 flex items-center justify-center shrink-0">
-                                <i data-lucide="shuffle" class="w-4 h-4"></i>
-                            </div>
-                            <div>
-                                <div class="font-bold text-sm text-indigo-950">全315語ランダム出題</div>
-                                <div class="text-[11px] text-slate-500">問題数を選んで総合実力テスト</div>
-                            </div>
-                        </div>
-                        <div class="grid grid-cols-5 gap-1.5">
-                            <button onclick="startAllRandomQuiz(10)" class="py-1.5 px-1 rounded-lg bg-white hover:bg-indigo-900 text-indigo-950 hover:text-white border border-indigo-200 font-black text-xs transition shadow-2xs">10題</button>
-                            <button onclick="startAllRandomQuiz(20)" class="py-1.5 px-1 rounded-lg bg-white hover:bg-indigo-900 text-indigo-950 hover:text-white border border-indigo-200 font-black text-xs transition shadow-2xs">20題</button>
-                            <button onclick="startAllRandomQuiz(50)" class="py-1.5 px-1 rounded-lg bg-white hover:bg-indigo-900 text-indigo-950 hover:text-white border border-indigo-200 font-black text-xs transition shadow-2xs">50題</button>
-                            <button onclick="startAllRandomQuiz(100)" class="py-1.5 px-1 rounded-lg bg-white hover:bg-indigo-900 text-indigo-950 hover:text-white border border-indigo-200 font-black text-xs transition shadow-2xs">100題</button>
-                            <button onclick="startAllRandomQuiz(315)" class="py-1.5 px-1 rounded-lg bg-indigo-900 hover:bg-indigo-800 text-amber-300 font-black text-xs transition shadow-2xs">315題</button>
+                <!-- 学習履歴（日別の正解数 棒グラフ） -->
+                <div class="mt-3 pt-3 border-t border-stone-100">
+                    <div class="flex items-center justify-between mb-1.5">
+                        <div class="flex items-center gap-1.5">
+                            <i data-lucide="bar-chart-2" class="w-4 h-4 text-indigo-700"></i>
+                            <span class="font-bold text-xs sm:text-sm text-slate-800">Learning Progress</span>
                         </div>
                     </div>
-
-                    <!-- チェック済み単語から出題 -->
-                    <div class="p-3.5 rounded-xl bg-amber-50/60 border-2 border-amber-400/50 text-slate-800 flex flex-col justify-between gap-2.5">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center shrink-0">
-                                <i data-lucide="star" class="w-5 h-5 fill-amber-400 text-amber-500"></i>
-                            </div>
-                            <div>
-                                <div class="font-bold text-sm sm:text-base text-amber-950 flex items-center gap-2">
-                                    <span>チェック済み単語から出題</span>
-                                    <span id="badge-checked-count" class="px-2 py-0.5 rounded-full text-xs font-black bg-amber-400 text-indigo-950">0語</span>
-                                </div>
-                                <div class="text-xs text-slate-600 mt-0.5" id="desc-checked">★チェックをつけた単語から出題します</div>
-                            </div>
-                        </div>
-                        <div class="grid grid-cols-5 gap-1.5">
-                            <button onclick="startSpecialQuiz('checked', 10)" class="checked-count-btn py-1.5 px-1 rounded-lg bg-white hover:bg-amber-500 text-amber-950 hover:text-white border border-amber-300 font-black text-xs transition shadow-2xs">10題</button>
-                            <button onclick="startSpecialQuiz('checked', 20)" class="checked-count-btn py-1.5 px-1 rounded-lg bg-white hover:bg-amber-500 text-amber-950 hover:text-white border border-amber-300 font-black text-xs transition shadow-2xs">20題</button>
-                            <button onclick="startSpecialQuiz('checked', 50)" class="checked-count-btn py-1.5 px-1 rounded-lg bg-white hover:bg-amber-500 text-amber-950 hover:text-white border border-amber-300 font-black text-xs transition shadow-2xs">50題</button>
-                            <button onclick="startSpecialQuiz('checked', 100)" class="checked-count-btn py-1.5 px-1 rounded-lg bg-white hover:bg-amber-500 text-amber-950 hover:text-white border border-amber-300 font-black text-xs transition shadow-2xs">100題</button>
-                            <button onclick="startSpecialQuiz('checked', 'all')" class="checked-count-btn py-1.5 px-1 rounded-lg bg-amber-400 hover:bg-amber-500 text-indigo-950 font-black text-xs transition shadow-2xs">全部</button>
-                        </div>
+                    <div id="study-history-chart" class="h-20 flex items-end gap-1.5 sm:gap-2 pt-4 pb-1 px-2 bg-stone-50/80 rounded-xl border border-stone-200/80">
+                        <!-- JSで日別棒グラフを描画 -->
                     </div>
                 </div>
             </div>
 
-            <!-- 32ステージグリッド -->
+            <!-- ステージグリッド -->
             <div>
-                <div class="flex items-center justify-between mb-3 px-1">
+                <div class="flex items-center justify-between mb-2.5 px-1">
                     <h3 class="font-bold text-slate-800 flex items-center gap-2">
                         <i data-lucide="grid" class="w-4 h-4 text-indigo-700"></i>
-                        <span>ステージ一覧（全21ステージ / 315語）</span>
+                        <span>Stage</span>
                     </h3>
-                    <span class="text-xs text-slate-500">1問20秒制限 / 8択＋9番「わからない」</span>
                 </div>
                 <div id="stage-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
-                    <!-- JSでステージ1〜32を動的生成 -->
+                    <!-- JSでステージ1〜21を動的生成 -->
                 </div>
             </div>
         </section>
@@ -390,7 +389,7 @@
 
                     <div class="flex items-center gap-2">
                         <span id="quiz-mode-label" class="text-xs font-bold px-2.5 py-1 rounded-md bg-indigo-50 text-indigo-900">
-                            ステージ 1
+                            Stage 1
                         </span>
                         <span class="text-sm font-black text-slate-700">
                             第 <span id="quiz-q-num" class="text-indigo-700 text-base">1</span> / <span id="quiz-q-total">10</span> 問
@@ -412,15 +411,15 @@
 
             <!-- 問題カード -->
             <div id="question-card" class="bg-white rounded-2xl p-6 sm:p-8 border border-stone-200 shadow-sm text-center mb-4 relative overflow-hidden">
-                <!-- クイズ中の任意チェックボタン -->
-                <button id="btn-quiz-check" onclick="toggleCurrentQuizWordCheck()" title="この単語をチェック（★）する" class="absolute top-3.5 right-3.5 p-2 rounded-xl border border-stone-200 bg-stone-50/80 hover:bg-amber-50 text-slate-400 transition focus:outline-none">
+                <!-- クイズ中の任意Saveボタン -->
+                <button id="btn-quiz-check" onclick="toggleCurrentQuizWordCheck()" title="この単語をSave（★）する" class="absolute top-3.5 right-3.5 p-2 rounded-xl border border-stone-200 bg-stone-50/80 hover:bg-amber-50 text-slate-400 transition focus:outline-none">
                     <i data-lucide="star" class="w-5 h-5"></i>
                 </button>
 
                 <!-- 現在の単語の習得ステータスバッジ -->
                 <div class="flex justify-center mb-3">
                     <span id="word-status-badge" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-600">
-                        未習得（連続正解: 0/2）
+                        Unlearned（連続正解: 0/2）
                     </span>
                 </div>
 
@@ -483,13 +482,13 @@
                         </div>
                     </div>
                     <div class="border-x border-stone-200">
-                        <div class="text-xs font-bold text-emerald-700">新規習得</div>
+                        <div class="text-xs font-bold text-emerald-700">新規Learned</div>
                         <div class="text-2xl sm:text-3xl font-black text-emerald-600 mt-0.5">
                             +<span id="res-promoted">0</span><span class="text-sm font-bold">語</span>
                         </div>
                     </div>
                     <div>
-                        <div class="text-xs font-bold text-rose-700">未習得へ降格</div>
+                        <div class="text-xs font-bold text-rose-700">Unlearnedへ降格</div>
                         <div class="text-2xl sm:text-3xl font-black text-rose-600 mt-0.5">
                             <span id="res-demoted">0</span><span class="text-sm font-bold">語</span>
                         </div>
@@ -508,7 +507,7 @@
                 <div class="flex flex-col sm:flex-row gap-3 pt-2">
                     <button onclick="switchTab('stages')" class="flex-1 py-3.5 px-4 rounded-xl border-2 border-stone-200 hover:bg-stone-50 font-bold text-slate-700 transition flex items-center justify-center gap-2">
                         <i data-lucide="grid" class="w-4 h-4"></i>
-                        <span>ステージへ戻る</span>
+                        <span>ステージ一覧へ戻る</span>
                     </button>
                     <button id="btn-retry-quiz" onclick="retryCurrentQuiz()" class="flex-1 py-3.5 px-4 rounded-xl bg-indigo-950 hover:bg-indigo-900 text-white font-bold shadow-sm transition flex items-center justify-center gap-2">
                         <i data-lucide="refresh-cw" class="w-4 h-4"></i>
@@ -539,17 +538,17 @@
                             class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-stone-200 bg-stone-50/50 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none text-sm transition">
                     </div>
                     <div class="flex bg-stone-100 p-1 rounded-xl border border-stone-200/80 shrink-0 overflow-x-auto">
-                        <button onclick="setDictFilter('all')" id="filter-all" class="dict-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-white text-indigo-950 shadow-sm whitespace-nowrap">すべて</button>
-                        <button onclick="setDictFilter('checked')" id="filter-checked" class="dict-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 whitespace-nowrap">★チェック(<span id="filter-checked-count">0</span>)</button>
-                        <button onclick="setDictFilter('unlearned')" id="filter-unlearned" class="dict-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 whitespace-nowrap">未習得(0)</button>
-                        <button onclick="setDictFilter('learning')" id="filter-learning" class="dict-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 whitespace-nowrap">あと1回(1/2)</button>
-                        <button onclick="setDictFilter('mastered')" id="filter-mastered" class="dict-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 whitespace-nowrap">習得済み</button>
+                        <button onclick="setDictFilter('all')" id="filter-all" class="dict-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-white text-indigo-950 shadow-sm whitespace-nowrap">All</button>
+                        <button onclick="setDictFilter('checked')" id="filter-checked" class="dict-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 whitespace-nowrap">★Save(<span id="filter-checked-count">0</span>)</button>
+                        <button onclick="setDictFilter('unlearned')" id="filter-unlearned" class="dict-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 whitespace-nowrap">Unlearned(0)</button>
+                        <button onclick="setDictFilter('learning')" id="filter-learning" class="dict-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 whitespace-nowrap">Learning(1/2)</button>
+                        <button onclick="setDictFilter('mastered')" id="filter-mastered" class="dict-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 whitespace-nowrap">Learned</button>
                     </div>
                 </div>
                 <div id="checked-bulk-bar" class="hidden flex items-center justify-between bg-amber-50 border border-amber-200 rounded-xl px-3.5 py-2 text-xs">
-                    <span class="font-bold text-amber-900">★ チェック済みの単語一覧を表示中です</span>
+                    <span class="font-bold text-amber-900">★ Save済みの単語一覧を表示中です</span>
                     <button onclick="clearAllChecked()" class="px-2.5 py-1 rounded-lg bg-white hover:bg-rose-50 text-rose-600 border border-rose-200 font-bold transition">
-                        チェックを一括解除
+                        Saveを一括解除
                     </button>
                 </div>
             </div>
@@ -1081,12 +1080,14 @@
          */
         const STORAGE_KEY = 'kobun_315_progress_v1';
         const CHECKED_STORAGE_KEY = 'kobun_315_checked_v1';
+        const HISTORY_STORAGE_KEY = 'kobun_315_daily_history_v1';
         const STAGE_SIZE = 15;
         const TOTAL_STAGES = Math.ceil(KOBUN_WORDS.length / STAGE_SIZE); // 21ステージ
         const TIME_LIMIT_SEC = 20;
 
         let userProgress = {};
         let checkedWords = {};
+        let dailyHistory = {};
         window.userProgressRef = userProgress;
         window.checkedWordsRef = checkedWords;
 
@@ -1154,6 +1155,7 @@
 
             loadProgress();
             loadCheckedWords();
+            loadDailyHistory();
             renderDashboard();
             renderStageGrid();
             renderDictionary();
@@ -1225,6 +1227,80 @@
             }
         }
 
+        function getTodayDateKey() {
+            const d = new Date();
+            const yyyy = d.getFullYear();
+            const mm = String(d.getMonth() + 1).padStart(2, '0');
+            const dd = String(d.getDate()).padStart(2, '0');
+            return `${yyyy}-${mm}-${dd}`;
+        }
+
+        function loadDailyHistory() {
+            try {
+                const raw = localStorage.getItem(HISTORY_STORAGE_KEY);
+                if (raw) {
+                    const parsed = JSON.parse(raw);
+                    Object.keys(parsed).forEach(dateStr => {
+                        const val = Number(parsed[dateStr]);
+                        if (val > 0) dailyHistory[dateStr] = val;
+                    });
+                }
+            } catch (e) {}
+        }
+
+        function saveDailyHistory() {
+            try {
+                localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(dailyHistory));
+            } catch (e) {}
+        }
+
+        function recordSolvedQuestion() {
+            const today = getTodayDateKey();
+            dailyHistory[today] = (dailyHistory[today] || 0) + 1;
+            saveDailyHistory();
+        }
+
+        function renderDailyHistoryChart() {
+            const chartEl = document.getElementById('study-history-chart');
+            if (!chartEl) return;
+
+            const days = [];
+            const now = new Date();
+            for (let i = 13; i >= 0; i--) {
+                const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
+                const yyyy = d.getFullYear();
+                const mm = String(d.getMonth() + 1).padStart(2, '0');
+                const dd = String(d.getDate()).padStart(2, '0');
+                const key = `${yyyy}-${mm}-${dd}`;
+                days.push({
+                    key,
+                    label: `${d.getMonth() + 1}/${d.getDate()}`,
+                    count: dailyHistory[key] || 0,
+                    isToday: i === 0
+                });
+            }
+
+            const maxCount = Math.max(10, ...days.map(d => d.count));
+            chartEl.innerHTML = '';
+
+            days.forEach(day => {
+                const heightPct = day.count > 0 ? Math.max(8, Math.round((day.count / maxCount) * 100)) : 3;
+                const col = document.createElement('div');
+                col.className = 'flex-1 h-full flex flex-col items-center justify-end gap-1 min-w-0';
+                col.title = `${day.label}: ${day.count}正解`;
+                col.innerHTML = `
+                    <span class="text-[10px] font-bold leading-none ${day.count > 0 ? (day.isToday ? 'text-indigo-700' : 'text-slate-600') : 'text-transparent'}">${day.count}</span>
+                    <div class="w-full max-w-[22px] rounded-t-md transition-all duration-300 ${
+                        day.count > 0
+                            ? (day.isToday ? 'bg-indigo-600' : 'bg-indigo-400/80')
+                            : 'bg-stone-200/80'
+                    }" style="height: ${heightPct}%;"></div>
+                    <span class="text-[9px] sm:text-[10px] font-medium leading-none truncate ${day.isToday ? 'text-indigo-700 font-black' : 'text-slate-400'}">${day.label}</span>
+                `;
+                chartEl.appendChild(col);
+            });
+        }
+
         function isWordChecked(wordId) {
             return Boolean(checkedWords[wordId]);
         }
@@ -1244,6 +1320,16 @@
             renderDashboard();
             renderDictionary();
             updateQuizCheckButton();
+            updateResultCheckButtons();
+        }
+
+        function updateResultCheckButtons() {
+            document.querySelectorAll('.result-check-btn').forEach(btn => {
+                const wordId = Number(btn.getAttribute('data-word-id'));
+                const checked = isWordChecked(wordId);
+                btn.innerHTML = `<i data-lucide="star" class="w-4 h-4 ${checked ? 'fill-amber-400 text-amber-500' : 'text-slate-300 hover:text-amber-400'}"></i>`;
+            });
+            if (window.lucide) lucide.createIcons();
         }
 
         function toggleCurrentQuizWordCheck() {
@@ -1404,59 +1490,50 @@
 
             const unlearnedPoolCount = total - mastered;
             const unlearnedBtns = document.querySelectorAll('.unlearned-count-btn');
-            const descUnlearned = document.getElementById('desc-unlearned');
             if (unlearnedPoolCount === 0) {
                 unlearnedBtns.forEach(b => {
                     b.disabled = true;
                     b.classList.add('opacity-40', 'cursor-not-allowed');
                 });
-                descUnlearned.textContent = '全315語を習得済みです！素晴らしい！';
             } else {
                 unlearnedBtns.forEach(b => {
                     b.disabled = false;
                     b.classList.remove('opacity-40', 'cursor-not-allowed');
                 });
-                descUnlearned.textContent = `未習得・習得中の ${unlearnedPoolCount} 語から問題数を選択`;
             }
 
             const masteredBtns = document.querySelectorAll('.mastered-count-btn');
-            const descMastered = document.getElementById('desc-mastered');
             if (mastered === 0) {
                 masteredBtns.forEach(b => {
                     b.disabled = true;
                     b.classList.add('opacity-40', 'cursor-not-allowed');
                 });
-                descMastered.textContent = '習得済みの単語が増えると挑戦できます';
             } else {
                 masteredBtns.forEach(b => {
                     b.disabled = false;
                     b.classList.remove('opacity-40', 'cursor-not-allowed');
                 });
-                descMastered.textContent = `習得済みの ${mastered} 語から問題数を選択`;
             }
 
             const checkedCount = getCheckedCount();
             const badgeChecked = document.getElementById('badge-checked-count');
             const filterCheckedCount = document.getElementById('filter-checked-count');
             const checkedBtns = document.querySelectorAll('.checked-count-btn');
-            const descChecked = document.getElementById('desc-checked');
-            if (badgeChecked) badgeChecked.textContent = `${checkedCount}語`;
+            if (badgeChecked) badgeChecked.textContent = `${checkedCount}`;
             if (filterCheckedCount) filterCheckedCount.textContent = checkedCount;
-            if (descChecked) {
-                if (checkedCount === 0) {
-                    checkedBtns.forEach(b => {
-                        b.disabled = true;
-                        b.classList.add('opacity-40', 'cursor-not-allowed');
-                    });
-                    descChecked.textContent = '単語一覧や問題画面の★を押すとここから出題できます';
-                } else {
-                    checkedBtns.forEach(b => {
-                        b.disabled = false;
-                        b.classList.remove('opacity-40', 'cursor-not-allowed');
-                    });
-                    descChecked.textContent = `★チェック済みの ${checkedCount} 語から問題数を選択`;
-                }
+            if (checkedCount === 0) {
+                checkedBtns.forEach(b => {
+                    b.disabled = true;
+                    b.classList.add('opacity-40', 'cursor-not-allowed');
+                });
+            } else {
+                checkedBtns.forEach(b => {
+                    b.disabled = false;
+                    b.classList.remove('opacity-40', 'cursor-not-allowed');
+                });
             }
+
+            renderDailyHistoryChart();
         }
 
         function renderStageGrid() {
@@ -1488,7 +1565,7 @@
                                 No.${firstNo}〜${lastNo}
                             </span>
                             <h4 class="font-serif font-extrabold text-base sm:text-lg text-slate-900 leading-tight">
-                                ステージ ${s}
+                                Stage ${s}
                             </h4>
                         </div>
                         ${
@@ -1508,8 +1585,8 @@
                             <div class="h-full bg-amber-400 transition-all" style="width: ${(learningCount / stageTotal) * 100}%"></div>
                         </div>
                         <div class="flex justify-between items-center text-[11px] font-medium text-slate-500">
-                            <span>${isComplete ? '完全習得済み！' : `習得 ${masteredCount}語`}</span>
-                            <span class="text-indigo-700 font-bold group-hover:translate-x-0.5 transition">挑戦 →</span>
+                            <span>${isComplete ? 'Mastered!' : `${masteredCount} words learned`}</span>
+                            <span class="text-indigo-700 font-bold group-hover:translate-x-0.5 transition">Challenge →</span>
                         </div>
                     </div>
                 `;
@@ -1541,7 +1618,7 @@
             quizState = {
                 mode: 'stage',
                 stageNum: stageNum,
-                title: `ステージ ${stageNum}（No.${firstNo}〜${lastNo}）`,
+                title: `Stage ${stageNum}（No.${firstNo}〜${lastNo}）`,
                 questions: shuffleArray(stageWords),
                 currentIndex: 0,
                 correctCount: 0,
@@ -1562,29 +1639,29 @@
 
             if (mode === 'unlearned') {
                 pool = KOBUN_WORDS.filter(w => !userProgress[w.id].mastered);
-                baseTitle = '未習得単語の集中演習';
+                baseTitle = 'Unlearned Words';
             } else if (mode === 'mastered') {
                 pool = KOBUN_WORDS.filter(w => userProgress[w.id].mastered);
-                baseTitle = '習得済み単語の記憶チェック';
+                baseTitle = 'Learned Words';
             } else if (mode === 'checked') {
                 pool = KOBUN_WORDS.filter(w => isWordChecked(w.id));
-                baseTitle = '★チェック済み単語演習';
+                baseTitle = 'Saved Words';
             }
 
             if (pool.length === 0) {
-                showToast(mode === 'checked' ? 'チェック済みの単語がありません' : '対象の単語がありません');
+                showToast(mode === 'checked' ? 'Save済みの単語がありません' : '対象の単語がありません');
                 return;
             }
 
             const shuffled = shuffleArray(pool);
             const selected = limit === 'all' ? shuffled : shuffled.slice(0, limit);
-            const countLabel = limit === 'all' ? `全部・${selected.length}題` : `${selected.length}題`;
+            const countLabel = limit === 'all' ? `All (${selected.length})` : `${selected.length}`;
 
             quizState = {
                 mode: mode,
                 stageNum: 0,
                 questionLimit: limit,
-                title: `${baseTitle}（${countLabel}）`,
+                title: `${baseTitle} (${countLabel})`,
                 questions: selected,
                 currentIndex: 0,
                 correctCount: 0,
@@ -1605,7 +1682,7 @@
                 mode: 'all_random',
                 stageNum: count,
                 questionLimit: count,
-                title: `全315語ランダム実力テスト（${count}題）`,
+                title: `Random315 (${count})`,
                 questions: selected,
                 currentIndex: 0,
                 correctCount: 0,
@@ -1657,13 +1734,13 @@
             const badge = document.getElementById('word-status-badge');
             if (prog.mastered) {
                 badge.className = 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800';
-                badge.innerHTML = `<i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i> 習得済み（誤答すると未習得へ降格）`;
+                badge.innerHTML = `<i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i> Learned（誤答するとUnlearnedへ降格）`;
             } else if (prog.streak === 1) {
                 badge.className = 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800';
-                badge.innerHTML = `<i data-lucide="sparkles" class="w-3.5 h-3.5"></i> 習得中（連続正解: 1/2 ー 次で習得！）`;
+                badge.innerHTML = `<i data-lucide="sparkles" class="w-3.5 h-3.5"></i> Learning（連続正解: 1/2 ー 次でLearned！）`;
             } else {
                 badge.className = 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-600';
-                badge.innerHTML = `未習得（連続正解: 0/2）`;
+                badge.innerHTML = `Unlearned（連続正解: 0/2）`;
             }
 
             const feedbackPanel = document.getElementById('feedback-panel');
@@ -1671,13 +1748,42 @@
             const qCard = document.getElementById('question-card');
             qCard.classList.remove('animate-shake');
 
-            const distractors = shuffleArray(
-                KOBUN_WORDS.filter(w => w.id !== wordObj.id && w.meaning !== wordObj.meaning)
-            ).slice(0, 7);
+            // 意味を個別パーツに分解し、正解や他の選択肢と意味が重複・酷似するダミーを除外する
+            const extractMeaningParts = (meaningStr) => {
+                return meaningStr
+                    .split(/[①②③④⑤⑥⑦⑧⑨⑩・（）\(\)「」〜\s　]+/)
+                    .map(s => s.replace(/である$|だ$|する$|なる$/, '').trim())
+                    .filter(s => s.length >= 2);
+            };
+
+            const isOverlappingMeaning = (partsA, partsB) => {
+                for (const a of partsA) {
+                    for (const b of partsB) {
+                        if (a === b) return true;
+                        if (a.length >= 3 && b.length >= 3 && (a.includes(b) || b.includes(a))) return true;
+                    }
+                }
+                return false;
+            };
+
+            const correctParts = extractMeaningParts(wordObj.meaning);
+            const selectedDistractors = [];
+            const selectedPartsList = [correctParts];
+
+            for (const candidate of shuffleArray(KOBUN_WORDS)) {
+                if (candidate.id === wordObj.id || candidate.meaning === wordObj.meaning) continue;
+                const candParts = extractMeaningParts(candidate.meaning);
+                const hasOverlap = selectedPartsList.some(existingParts => isOverlappingMeaning(existingParts, candParts));
+                if (!hasOverlap) {
+                    selectedDistractors.push(candidate);
+                    selectedPartsList.push(candParts);
+                    if (selectedDistractors.length === 7) break;
+                }
+            }
 
             const eightChoices = shuffleArray([
                 { text: wordObj.meaning, isCorrect: true, isUnknown: false },
-                ...distractors.map(d => ({ text: d.meaning, isCorrect: false, isUnknown: false }))
+                ...selectedDistractors.map(d => ({ text: d.meaning, isCorrect: false, isUnknown: false }))
             ]);
 
             eightChoices.push({
@@ -1789,8 +1895,9 @@
 
             if (isCorrect) {
                 quizState.correctCount++;
+                recordSolvedQuestion();
                 if (wasMastered) {
-                    statusChangeText = '習得済みキープ！';
+                    statusChangeText = 'Learnedキープ！';
                     statusChangeClass = 'bg-emerald-100 text-emerald-800';
                     outcomeType = 'kept';
                 } else {
@@ -1798,11 +1905,11 @@
                     if (prog.streak >= 2) {
                         prog.mastered = true;
                         quizState.promotedCount++;
-                        statusChangeText = '祝・習得済みに昇格！(2/2)';
+                        statusChangeText = '祝・Learnedに昇格！(2/2)';
                         statusChangeClass = 'bg-emerald-600 text-white';
                         outcomeType = 'promoted';
                     } else {
-                        statusChangeText = '連続正解 1/2（あと1回で習得！）';
+                        statusChangeText = 'Learning 1/2（あと1回でLearned！）';
                         statusChangeClass = 'bg-amber-100 text-amber-900';
                         outcomeType = 'streak1';
                     }
@@ -1812,7 +1919,7 @@
                 prog.mastered = false;
                 if (wasMastered) {
                     quizState.demotedCount++;
-                    statusChangeText = '習得済み → 未習得へ降格 (0/2)';
+                    statusChangeText = 'Learned → Unlearnedへ降格 (0/2)';
                     statusChangeClass = 'bg-rose-600 text-white';
                     outcomeType = 'demoted';
                 } else if (prevStreak === 1) {
@@ -1820,13 +1927,14 @@
                     statusChangeClass = 'bg-rose-100 text-rose-800';
                     outcomeType = 'reset';
                 } else {
-                    statusChangeText = '未習得のまま (0/2)';
+                    statusChangeText = 'Unlearnedのまま (0/2)';
                     statusChangeClass = 'bg-slate-200 text-slate-700';
                     outcomeType = 'stay_unlearned';
                 }
             }
 
             saveProgress();
+            recordSolvedQuestion();
 
             quizState.history.push({
                 wordObj,
@@ -1872,7 +1980,7 @@
                 document.getElementById('question-card').classList.add('animate-shake');
                 fbPanel.className = 'mt-4 rounded-2xl p-5 border-2 border-rose-400 bg-rose-50/90 shadow-md animate-pop';
                 fbBadge.className = 'inline-flex items-center gap-1 px-3 py-1 rounded-lg text-sm font-black bg-rose-600 text-white';
-                const label = isTimeout ? '時間切れ！' : (isUnknown ? 'わからない（未習得扱い）' : '不正解…');
+                const label = isTimeout ? '時間切れ！' : (isUnknown ? 'わからない（Unlearned扱い）' : '不正解…');
                 fbBadge.innerHTML = `<i data-lucide="circle-x" class="w-4 h-4"></i> ${label}`;
             }
 
@@ -1922,18 +2030,19 @@
 
                 if (newStatus.mastered) {
                     badgeHtml = `<span class="px-2 py-0.5 rounded-md text-[11px] font-bold bg-emerald-100 text-emerald-800">
-                        ${outcomeType === 'promoted' ? '★ 新規習得！' : '習得済み'}
+                        ${outcomeType === 'promoted' ? '★ 新規Learned！' : 'Learned'}
                     </span>`;
                 } else if (newStatus.streak === 1) {
-                    badgeHtml = `<span class="px-2 py-0.5 rounded-md text-[11px] font-bold bg-amber-100 text-amber-800">習得中 (1/2)</span>`;
+                    badgeHtml = `<span class="px-2 py-0.5 rounded-md text-[11px] font-bold bg-amber-100 text-amber-800">Learning (1/2)</span>`;
                 } else {
                     badgeHtml = `<span class="px-2 py-0.5 rounded-md text-[11px] font-bold ${
                         outcomeType === 'demoted' ? 'bg-rose-100 text-rose-800' : 'bg-slate-100 text-slate-600'
-                    }">${outcomeType === 'demoted' ? '↓ 未習得へ降格' : '未習得 (0/2)'}</span>`;
+                    }">${outcomeType === 'demoted' ? '↓ Unlearnedへ降格' : 'Unlearned (0/2)'}</span>`;
                 }
 
                 const row = document.createElement('div');
                 row.className = 'p-3 bg-white flex items-center justify-between gap-3';
+                const checked = isWordChecked(wordObj.id);
                 row.innerHTML = `
                     <div class="flex items-center gap-2.5 min-w-0">
                         <span class="w-6 h-6 rounded-full flex items-center justify-center shrink-0 text-xs font-black ${
@@ -1948,7 +2057,12 @@
                             <div class="text-xs text-slate-600 truncate">${wordObj.meaning}</div>
                         </div>
                     </div>
-                    <div class="shrink-0">${badgeHtml}</div>
+                    <div class="flex items-center gap-2 shrink-0">
+                        ${badgeHtml}
+                        <button onclick="toggleWordCheck(${wordObj.id}, event)" data-word-id="${wordObj.id}" title="Save切り替え" class="result-check-btn p-1.5 rounded-lg border border-stone-200 hover:bg-amber-50 transition focus:outline-none">
+                            <i data-lucide="star" class="w-4 h-4 ${checked ? 'fill-amber-400 text-amber-500' : 'text-slate-300 hover:text-amber-400'}"></i>
+                        </button>
+                    </div>
                 `;
                 listEl.appendChild(row);
             });
@@ -2019,15 +2133,15 @@
 
                 if (prog.mastered) {
                     statusBadge = `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">
-                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>習得済み
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>Learned
                     </span>`;
                 } else if (prog.streak === 1) {
                     statusBadge = `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800">
-                        <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>習得中 (1/2)
+                        <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>Learning (1/2)
                     </span>`;
                 } else {
                     statusBadge = `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-600">
-                        <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>未習得 (0/2)
+                        <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>Unlearned (0/2)
                     </span>`;
                 }
 
@@ -2035,7 +2149,7 @@
                 tr.className = 'hover:bg-stone-50/80 transition';
                 tr.innerHTML = `
                     <td class="py-3 px-2 text-center">
-                        <button onclick="toggleWordCheck(${w.id}, event)" title="チェック切り替え" class="p-1.5 rounded-lg hover:bg-amber-50 transition focus:outline-none">
+                        <button onclick="toggleWordCheck(${w.id}, event)" title="Save切り替え" class="p-1.5 rounded-lg hover:bg-amber-50 transition focus:outline-none">
                             <i data-lucide="star" class="w-4 h-4 ${checked ? 'fill-amber-400 text-amber-500' : 'text-slate-300 hover:text-amber-400'}"></i>
                         </button>
                     </td>
