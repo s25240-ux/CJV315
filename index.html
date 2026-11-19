@@ -1848,7 +1848,7 @@
             ]);
 
             eightChoices.push({
-                text: 'わからない（スキップして答えを見る）',
+                text: 'わからない',
                 isCorrect: false,
                 isUnknown: true
             });
@@ -2050,7 +2050,7 @@
             const mobileNextHint = document.getElementById('mobile-next-hint');
             const mobileNextLabel = document.getElementById('mobile-next-label');
             if (mobileNextHint && mobileNextLabel) {
-                mobileNextLabel.textContent = isLast ? 'ここをタップして結果を見る' : 'ここをタップして次の問題へ';
+                mobileNextLabel.textContent = isLast ? 'タップして結果を見る' : 'タップして次の問題へ';
                 mobileNextHint.classList.remove('hidden');
             }
 
