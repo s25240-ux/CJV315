@@ -588,7 +588,7 @@
             <div class="bg-white rounded-2xl p-4 sm:p-5 border border-stone-200 shadow-sm space-y-4">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <div>
-                        <h2 class="text-lg font-bold text-slate-900">収録古文単語一覧（No.1〜315 全315語）</h2>
+                        <h2 class="text-lg font-bold text-slate-900">収録古文単語一覧</h2>
                         <p class="text-xs text-slate-500">番号・単語・読み・意味での検索や、習得状況ごとの絞り込みができます</p>
                     </div>
                     <div class="text-xs font-bold text-indigo-900 bg-indigo-50 px-3 py-1.5 rounded-lg self-start sm:self-auto">
@@ -600,7 +600,7 @@
                 <div class="flex flex-col md:flex-row gap-3">
                     <div class="relative flex-1">
                         <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
-                        <input id="dict-search" type="text" oninput="renderDictionary()" placeholder="番号・単語・ひらがな・現代語訳で検索（例：1、おどろく、目を覚ます）"
+                        <input id="dict-search" type="text" oninput="renderDictionary()" placeholder="番号・単語・現代語訳で検索"
                             class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-stone-200 bg-stone-50/50 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none text-sm transition">
                     </div>
                     <div class="flex bg-stone-100 p-1 rounded-xl border border-stone-200/80 shrink-0 overflow-x-auto">
@@ -610,13 +610,6 @@
                         <button onclick="setDictFilter('learning')" id="filter-learning" class="dict-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 whitespace-nowrap">Learning</button>
                         <button onclick="setDictFilter('mastered')" id="filter-mastered" class="dict-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 whitespace-nowrap">Learned</button>
                     </div>
-                </div>
-                <div id="checked-bulk-bar" class="hidden flex items-center justify-between bg-amber-50 border border-amber-200 rounded-xl px-3.5 py-2 text-xs">
-                    <span class="font-bold text-amber-900">★ Save済みの単語一覧を表示中です</span>
-                    <button onclick="clearAllChecked()" class="px-2.5 py-1 rounded-lg bg-white hover:bg-rose-50 text-rose-600 border border-rose-200 font-bold transition">
-                        Saveを一括解除
-                    </button>
-                </div>
             </div>
 
             <!-- 単語リストテーブル -->
@@ -627,8 +620,8 @@
                             <tr class="bg-stone-50 border-b border-stone-200 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
                                 <th class="py-3 px-1.5 sm:px-2 w-9 sm:w-12 text-center">★</th>
                                 <th class="py-3 px-2 sm:px-4 w-12 sm:w-20">No.</th>
-                                <th class="py-3 px-2 sm:px-4 w-28 sm:w-48">古文単語（読み）</th>
-                                <th class="py-3 px-2 sm:px-4">重要な現代語訳</th>
+                                <th class="py-3 px-2 sm:px-4 w-28 sm:w-48">古文単語</th>
+                                <th class="py-3 px-2 sm:px-4">現代語訳</th>
                                 <th class="py-3 px-1.5 sm:px-3 w-10 sm:w-14 text-center">状態</th>
                             </tr>
                         </thead>
@@ -685,14 +678,14 @@
                 <h3 class="font-bold text-base text-slate-900">途中で中断しますか？</h3>
             </div>
             <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
-                最後まで解き終えずに途中でやめると、今回の<span class="font-bold text-rose-600">習得状況や正解数カウントは一切保存されません</span>。本当に戻りますか？
+                途中でやめると、今回の<span class="font-bold text-rose-600">習得状況や正解数カウントは一切保存されません</span>。本当に戻りますか？？？
             </p>
             <div class="grid grid-cols-2 gap-2.5 pt-1">
                 <button onclick="closeQuitConfirmModal()" class="py-2.5 px-3 rounded-xl border border-stone-200 hover:bg-stone-50 text-slate-700 font-bold text-xs transition">
                     続ける
                 </button>
                 <button onclick="confirmQuitQuiz()" class="py-2.5 px-3 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs transition">
-                    破棄して戻る
+                    破棄する（Wimp）
                 </button>
             </div>
         </div>
