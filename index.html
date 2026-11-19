@@ -294,7 +294,7 @@
             <div class="bg-white rounded-2xl p-3.5 sm:p-5 border border-stone-200/90 shadow-sm">
                 <div class="flex flex-col md:flex-row md:items-center justify-between gap-2 sm:gap-2.5 mb-2.5">
                     <div class="flex items-center justify-between">
-                        <h2 class="text-sm sm:text-lg font-bold text-slate-900">Achievement Rate</h2>
+                        <h2 class="text-sm sm:text-lg font-bold text-slate-900">Mastery Rate</h2>
                         <div class="text-right sm:hidden">
                             <span id="stat-percent-mobile" class="hidden">0.0</span>
                         </div>
@@ -330,23 +330,41 @@
                 </div>
 
                 <!-- 名言（方丈記） -->
-                <div class="mt-2.5 pt-2 border-t border-stone-100 flex items-center justify-center gap-1.5 text-center">
-                    <i data-lucide="feather" class="w-3 h-3 text-indigo-400 shrink-0"></i>
-                    <p class="font-serif text-[11px] sm:text-xs text-slate-500 tracking-wider">
-                        ゆく河の流れは絶えずして、しかも、もとの水にあらず。
+                <div class="mt-2.5 pt-2 border-t border-stone-100 flex flex-col items-center justify-center text-center">
+                    <div class="flex items-center justify-center gap-1.5">
+                        <i data-lucide="feather" class="w-3 h-3 text-indigo-400 shrink-0"></i>
+                        <p class="font-serif text-[11px] sm:text-xs text-slate-500 tracking-wider">
+                            ゆく河の流れは絶えずして、しかも、もとの水にあらず。
+                        </p>
+                    </div>
+                    <p class="hidden sm:block text-[10px] text-slate-400/80 tracking-wide mt-0.5">
+                        The river flows on without end, and yet its waters are never the same.
                     </p>
                 </div>
 
-                <!-- 日別学習履歴（棒グラフ） -->
-                <div class="mt-2.5 pt-2.5 border-t border-stone-100">
-                    <div class="flex items-center justify-between mb-1.5">
-                        <span class="text-[11px] sm:text-xs font-bold text-slate-700 flex items-center gap-1.5">
-                            <i data-lucide="bar-chart-2" class="w-3.5 h-3.5 text-indigo-600"></i>
-                            <span>Learning Progress</span>
-                        </span>
+                <!-- 日別学習履歴（棒グラフ）＆ 向上得点 -->
+                <div class="mt-2.5 pt-2.5 border-t border-stone-100 flex items-stretch gap-2.5 sm:gap-4">
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center justify-between mb-1.5">
+                            <span class="text-[11px] sm:text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                                <i data-lucide="bar-chart-2" class="w-3.5 h-3.5 text-indigo-600"></i>
+                                <span>Learning Progress</span>
+                            </span>
+                        </div>
+                        <div id="study-history-chart" class="h-14 sm:h-16 flex items-end gap-1 sm:gap-1.5 pt-2 px-0.5">
+                            <!-- JSでPC14日間・スマホ7日間の棒グラフを描画 -->
+                        </div>
                     </div>
-                    <div id="study-history-chart" class="h-14 sm:h-16 flex items-end gap-0.5 sm:gap-1.5 pt-2 px-0.5 sm:px-1">
-                        <!-- JSで直近14日間の棒グラフを描画 -->
+
+                    <!-- 向上得点ボックス -->
+                    <div class="w-24 sm:w-32 shrink-0 rounded-xl bg-indigo-50/70 border border-indigo-100 p-2 sm:p-2.5 flex flex-col items-center justify-center text-center">
+                        <span class="text-[10px] sm:text-xs font-bold text-indigo-800 flex items-center gap-1">
+                            <i data-lucide="trending-up" class="w-3 h-3 sm:w-3.5 sm:h-3.5 text-indigo-600"></i>
+                            <span>向上得点</span>
+                        </span>
+                        <div class="mt-1 font-black text-indigo-950 leading-none">
+                            <span id="stat-kojo-score" class="text-lg sm:text-2xl">0.0</span><span class="text-[10px] sm:text-xs font-bold ml-0.5">P</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -637,14 +655,14 @@
                 </button>
             </div>
             <p class="text-xs text-slate-600 leading-relaxed">
-                Googleサイト等でページを再起動するとブラウザの保存領域が変わる場合があります。下の「保存コードをコピー」してメモ帳などに残しておくと、次回いつでも続きから復元できます。
+                同じブラウザ内ではデータは保持されますが、別の端末やブラウザで開く際のデータ引き継ぎには保存コードをご利用ください。
             </p>
             <div class="space-y-2">
                 <div class="flex items-center justify-between">
-                    <label class="text-xs font-bold text-slate-700">あなたの保存コード</label>
+                    <label class="text-xs font-bold text-slate-700">復元用コード入力欄</label>
                     <span id="cloud-sync-status" class="text-[11px] font-bold text-slate-400"></span>
                 </div>
-                <textarea id="backup-code-box" rows="3" placeholder="ここに保存コードが表示されます（復元時はコードを貼り付けて下のボタンを押してください）" class="w-full p-2.5 rounded-xl border border-stone-200 bg-stone-50 text-xs font-mono text-slate-700 focus:bg-white focus:border-indigo-500 outline-none"></textarea>
+                <textarea id="backup-code-box" rows="3" placeholder="引き継ぎ時はここに保存コードを貼り付けて「コードから復元」を押してください" class="w-full p-2.5 rounded-xl border border-stone-200 bg-stone-50 text-xs font-mono text-slate-700 focus:bg-white focus:border-indigo-500 outline-none"></textarea>
             </div>
             <div class="grid grid-cols-2 gap-2.5 pt-1">
                 <button onclick="copyBackupCode()" class="py-2.5 px-3 rounded-xl bg-indigo-950 hover:bg-indigo-900 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition">
@@ -1150,6 +1168,7 @@
         const STORAGE_KEY = 'kobun_315_progress_v1';
         const CHECKED_STORAGE_KEY = 'kobun_315_checked_v1';
         const HISTORY_STORAGE_KEY = 'kobun_315_daily_history_v1';
+        const SCORE_STORAGE_KEY = 'kobun_315_kojo_score_v1';
         const STAGE_SIZE = 15;
         const TOTAL_STAGES = Math.ceil(KOBUN_WORDS.length / STAGE_SIZE); // 21ステージ
         const TIME_LIMIT_SEC = 12;
@@ -1157,6 +1176,7 @@
         let userProgress = {};
         let checkedWords = {};
         let dailyHistory = {};
+        let totalCorrectScoreCount = 0;
         window.userProgressRef = userProgress;
         window.checkedWordsRef = checkedWords;
 
@@ -1176,7 +1196,8 @@
             timeLeft: TIME_LIMIT_SEC,
             currentChoices: [],
             snapshotProgress: null,
-            snapshotHistory: null
+            snapshotHistory: null,
+            snapshotScoreCount: 0
         };
 
         let currentDictFilter = 'all';
@@ -1233,6 +1254,7 @@
             loadProgress();
             loadCheckedWords();
             loadDailyHistory();
+            loadTotalScoreCount();
             renderDashboard();
             renderStageGrid();
             renderDictionary();
@@ -1331,19 +1353,40 @@
             } catch (e) {}
         }
 
+        function loadTotalScoreCount() {
+            try {
+                const raw = localStorage.getItem(SCORE_STORAGE_KEY);
+                if (raw !== null) {
+                    totalCorrectScoreCount = Math.max(0, Number(raw) || 0);
+                } else {
+                    totalCorrectScoreCount = Object.values(dailyHistory).reduce((acc, v) => acc + (Number(v) || 0), 0);
+                }
+            } catch (e) {}
+        }
+
+        function saveTotalScoreCount() {
+            try {
+                localStorage.setItem(SCORE_STORAGE_KEY, String(totalCorrectScoreCount));
+            } catch (e) {}
+        }
+
         function recordSolvedQuestion() {
             const today = getTodayDateKey();
             dailyHistory[today] = (dailyHistory[today] || 0) + 1;
             saveDailyHistory();
+            totalCorrectScoreCount += 1;
+            saveTotalScoreCount();
         }
 
         function renderDailyHistoryChart() {
             const chartEl = document.getElementById('study-history-chart');
             if (!chartEl) return;
 
+            const isMobile = window.innerWidth < 640;
+            const daySpan = isMobile ? 6 : 13;
             const days = [];
             const now = new Date();
-            for (let i = 13; i >= 0; i--) {
+            for (let i = daySpan; i >= 0; i--) {
                 const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
                 const yyyy = d.getFullYear();
                 const mm = String(d.getMonth() + 1).padStart(2, '0');
@@ -1372,7 +1415,7 @@
                             ? (day.isToday ? 'bg-indigo-600' : 'bg-indigo-400/80')
                             : 'bg-stone-200/80'
                     }" style="height: ${heightPct}%;"></div>
-                    <span class="text-[8px] sm:text-[10px] font-medium leading-none tracking-tighter sm:tracking-normal whitespace-nowrap ${day.isToday ? 'text-indigo-700 font-black' : 'text-slate-400'}">${day.label}</span>
+                    <span class="text-[9px] sm:text-[10px] font-medium leading-none tracking-tighter sm:tracking-normal whitespace-nowrap ${day.isToday ? 'text-indigo-700 font-black' : 'text-slate-400'}">${day.label}</span>
                 `;
                 chartEl.appendChild(col);
             });
@@ -1442,14 +1485,7 @@
         function openBackupModal() {
             const modal = document.getElementById('backup-modal');
             const box = document.getElementById('backup-code-box');
-            const payload = { p: userProgress, c: checkedWords };
-            try {
-                const jsonStr = JSON.stringify(payload);
-                const encoded = btoa(unescape(encodeURIComponent(jsonStr)));
-                box.value = encoded;
-            } catch (e) {
-                box.value = JSON.stringify(payload);
-            }
+            box.value = '';
             modal.classList.remove('hidden');
             lucide.createIcons();
         }
@@ -1458,10 +1494,26 @@
             document.getElementById('backup-modal').classList.add('hidden');
         }
 
+        function generateBackupCodeString() {
+            const payload = { p: userProgress, c: checkedWords, s: totalCorrectScoreCount, h: dailyHistory };
+            try {
+                const jsonStr = JSON.stringify(payload);
+                return btoa(unescape(encodeURIComponent(jsonStr)));
+            } catch (e) {
+                return JSON.stringify(payload);
+            }
+        }
+
         function copyBackupCode() {
-            const box = document.getElementById('backup-code-box');
-            box.select();
+            const code = generateBackupCodeString();
+            const tempInput = document.createElement('textarea');
+            tempInput.value = code;
+            tempInput.style.position = 'fixed';
+            tempInput.style.opacity = '0';
+            document.body.appendChild(tempInput);
+            tempInput.select();
             document.execCommand('copy');
+            document.body.removeChild(tempInput);
             showToast('保存コードをクリップボードにコピーしました');
         }
 
@@ -1493,6 +1545,18 @@
                     Object.keys(parsed.c).forEach(id => {
                         if (parsed.c[id]) checkedWords[id] = true;
                     });
+                }
+                if (parsed.h && typeof parsed.h === 'object') {
+                    Object.keys(dailyHistory).forEach(k => delete dailyHistory[k]);
+                    Object.keys(parsed.h).forEach(d => {
+                        const val = Number(parsed.h[d]);
+                        if (val > 0) dailyHistory[d] = val;
+                    });
+                    saveDailyHistory();
+                }
+                if (typeof parsed.s === 'number') {
+                    totalCorrectScoreCount = Math.max(0, parsed.s);
+                    saveTotalScoreCount();
                 }
                 saveProgress();
                 saveCheckedWords();
@@ -1616,6 +1680,11 @@
             }
 
             renderDailyHistoryChart();
+
+            const kojoEl = document.getElementById('stat-kojo-score');
+            if (kojoEl) {
+                kojoEl.textContent = (totalCorrectScoreCount * 0.5).toFixed(1);
+            }
         }
 
         function renderStageGrid() {
@@ -1634,14 +1703,14 @@
 
                 const card = document.createElement('button');
                 card.onclick = () => startStageQuiz(s);
-                card.className = `group relative p-2.5 sm:p-4 rounded-xl sm:rounded-2xl border text-left transition shadow-2xs hover:shadow-md flex flex-col justify-between ${
+                card.className = `group relative p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl border text-left transition shadow-2xs hover:shadow-md flex flex-col justify-between ${
                     isComplete
                         ? 'bg-emerald-50/70 border-emerald-300 hover:border-emerald-500'
                         : 'bg-white border-stone-200 hover:border-indigo-400'
                 }`;
 
                 card.innerHTML = `
-                    <div class="flex items-start justify-between w-full mb-1 sm:mb-2">
+                    <div class="flex items-start justify-between w-full mb-1.5 sm:mb-2">
                         <div>
                             <span class="text-[9px] sm:text-[10px] font-bold tracking-wider uppercase ${isComplete ? 'text-emerald-700' : 'text-indigo-600'}">
                                 No.${firstNo}〜${lastNo}
@@ -1661,7 +1730,7 @@
                         }
                     </div>
 
-                    <div class="w-full space-y-1 sm:space-y-1.5 mt-0.5 sm:mt-1">
+                    <div class="w-full">
                         <div class="w-full h-1.5 sm:h-2 bg-stone-100 rounded-full overflow-hidden flex">
                             <div class="h-full bg-emerald-500 transition-all" style="width: ${(masteredCount / stageTotal) * 100}%"></div>
                             <div class="h-full bg-amber-400 transition-all" style="width: ${(learningCount / stageTotal) * 100}%"></div>
@@ -1788,6 +1857,7 @@
         function launchQuizView() {
             quizState.snapshotProgress = JSON.parse(JSON.stringify(userProgress));
             quizState.snapshotHistory = JSON.parse(JSON.stringify(dailyHistory));
+            quizState.snapshotScoreCount = totalCorrectScoreCount;
 
             ['stages', 'result', 'dict'].forEach(v => {
                 document.getElementById(`view-${v}`).classList.add('hidden');
@@ -2122,6 +2192,10 @@
                 Object.assign(dailyHistory, quizState.snapshotHistory);
                 quizState.snapshotHistory = null;
                 saveDailyHistory();
+            }
+            if (typeof quizState.snapshotScoreCount === 'number') {
+                totalCorrectScoreCount = quizState.snapshotScoreCount;
+                saveTotalScoreCount();
             }
         }
 
