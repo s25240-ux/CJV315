@@ -506,7 +506,7 @@
                 <!-- 現在の単語の習得ステータスバッジ -->
                 <div class="flex justify-center mb-1 sm:mb-2">
                     <span id="word-status-badge" class="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full text-[11px] sm:text-xs font-bold bg-slate-100 text-slate-600">
-                        Unlearned（連続正解: 0/2）
+                        Unlearned
                     </span>
                 </div>
 
@@ -1878,13 +1878,13 @@
             const badge = document.getElementById('word-status-badge');
             if (prog.mastered) {
                 badge.className = 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800';
-                badge.innerHTML = `<i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i> Learned（誤答するとUnlearnedへ降格）`;
+                badge.innerHTML = `<i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i> Learned`;
             } else if (prog.streak === 1) {
                 badge.className = 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800';
-                badge.innerHTML = `<i data-lucide="sparkles" class="w-3.5 h-3.5"></i> Learning（連続正解: 1/2 ー 次でLearned！）`;
+                badge.innerHTML = `<i data-lucide="sparkles" class="w-3.5 h-3.5"></i> Learning`;
             } else {
                 badge.className = 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-600';
-                badge.innerHTML = `Unlearned（連続正解: 0/2）`;
+                badge.innerHTML = `Unlearned`;
             }
 
             const qCard = document.getElementById('question-card');
@@ -1934,7 +1934,7 @@
             ]);
 
             eightChoices.push({
-                text: 'わからない（スキップして答えを見る）',
+                text: 'わからない',
                 isCorrect: false,
                 isUnknown: true
             });
@@ -1973,7 +1973,7 @@
             pcNextBtn.onclick = () => nextQuestion();
             pcNextBtn.className = 'hidden items-center justify-center gap-2 p-2.5 sm:p-3.5 rounded-xl bg-indigo-950 hover:bg-indigo-900 text-white font-bold text-sm shadow-sm transition animate-pop';
             pcNextBtn.innerHTML = `
-                <span>${isLast ? '結果を見る' : '次の問題へ'}</span>
+                <span>${isLast ? '結果を見る' : 'NEXT'}</span>
                 <i data-lucide="arrow-right" class="w-4 h-4"></i>
             `;
             choicesGrid.appendChild(pcNextBtn);
@@ -2136,7 +2136,7 @@
             const mobileNextHint = document.getElementById('mobile-next-hint');
             const mobileNextLabel = document.getElementById('mobile-next-label');
             if (mobileNextHint && mobileNextLabel) {
-                mobileNextLabel.textContent = isLast ? 'ここをタップして結果を見る' : 'ここをタップして次の問題へ';
+                mobileNextLabel.textContent = isLast ? 'Tap to see the results' : 'Tap to Continue';
                 mobileNextHint.classList.remove('hidden');
             }
 
@@ -2199,7 +2199,7 @@
             discardQuizSession();
             document.getElementById('view-quiz').classList.add('hidden');
             switchTab(targetTab);
-            showToast('途中終了したため、今回の記録は破棄されました');
+            showToast('途中終了、記録は破棄されちゃった');
         }
 
         /**
