@@ -186,6 +186,22 @@
         html.dark .hover\:bg-amber-50:hover {
             background-color: rgba(217, 119, 6, 0.25) !important;
         }
+        html.dark .hover\:bg-rose-600:hover:not(:disabled) {
+            background-color: #E11D48 !important;
+            color: #FFFFFF !important;
+        }
+        html.dark .hover\:bg-emerald-600:hover:not(:disabled) {
+            background-color: #059669 !important;
+            color: #FFFFFF !important;
+        }
+        html.dark .hover\:bg-indigo-600:hover:not(:disabled) {
+            background-color: #4F46E5 !important;
+            color: #FFFFFF !important;
+        }
+        html.dark .hover\:bg-amber-500:hover:not(:disabled) {
+            background-color: #D97706 !important;
+            color: #FFFFFF !important;
+        }
         html.dark .choice-btn {
             background-color: #1E293B !important;
             color: #F8FAFC !important;
@@ -452,11 +468,11 @@
 
                     <div class="flex items-center gap-1 shrink-0 whitespace-nowrap">
                         <i data-lucide="timer" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-indigo-700"></i>
-                        <span id="timer-text" class="font-mono text-xs sm:text-sm font-bold text-indigo-900">20.0秒</span>
+                        <span id="timer-text" class="font-mono text-xs sm:text-sm font-bold text-indigo-900">12.0秒</span>
                     </div>
                 </div>
 
-                <!-- 20秒制限時間ゲージ -->
+                <!-- 12秒制限時間ゲージ -->
                 <div class="w-full h-1.5 sm:h-2 bg-stone-100 rounded-full overflow-hidden">
                     <div id="timer-bar" class="h-full bg-indigo-600 transition-all duration-75 ease-linear" style="width: 100%"></div>
                 </div>
@@ -591,11 +607,11 @@
                     <table class="w-full text-left border-collapse">
                         <thead>
                             <tr class="bg-stone-50 border-b border-stone-200 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                                <th class="py-3 px-2 w-12 text-center">★</th>
-                                <th class="py-3 px-4 w-20">No.</th>
-                                <th class="py-3 px-4 w-48">古文単語（読み）</th>
-                                <th class="py-3 px-4">重要な現代語訳</th>
-                                <th class="py-3 px-4 w-36 text-center">習得ステータス</th>
+                                <th class="py-3 px-1.5 sm:px-2 w-9 sm:w-12 text-center">★</th>
+                                <th class="py-3 px-2 sm:px-4 w-12 sm:w-20">No.</th>
+                                <th class="py-3 px-2 sm:px-4 w-28 sm:w-48">古文単語（読み）</th>
+                                <th class="py-3 px-2 sm:px-4">重要な現代語訳</th>
+                                <th class="py-3 px-1.5 sm:px-3 w-10 sm:w-14 text-center">状態</th>
                             </tr>
                         </thead>
                         <tbody id="dict-tbody" class="divide-y divide-stone-100 text-sm">
@@ -1136,7 +1152,7 @@
         const HISTORY_STORAGE_KEY = 'kobun_315_daily_history_v1';
         const STAGE_SIZE = 15;
         const TOTAL_STAGES = Math.ceil(KOBUN_WORDS.length / STAGE_SIZE); // 21ステージ
-        const TIME_LIMIT_SEC = 20;
+        const TIME_LIMIT_SEC = 12;
 
         let userProgress = {};
         let checkedWords = {};
@@ -1164,6 +1180,12 @@
         };
 
         let currentDictFilter = 'all';
+        let pendingNavTab = null;
+
+        function isQuizInProgress() {
+            const quizView = document.getElementById('view-quiz');
+            return Boolean(quizView && !quizView.classList.contains('hidden'));
+        }
 
         /**
          * ============================================================================
@@ -1497,6 +1519,11 @@
          * ============================================================================
          */
         function switchTab(tabName) {
+            if (isQuizInProgress()) {
+                pendingNavTab = tabName;
+                quitQuiz();
+                return;
+            }
             stopTimer();
             ['stages', 'quiz', 'result', 'dict'].forEach(v => {
                 document.getElementById(`view-${v}`).classList.add('hidden');
@@ -1638,10 +1665,6 @@
                         <div class="w-full h-1.5 sm:h-2 bg-stone-100 rounded-full overflow-hidden flex">
                             <div class="h-full bg-emerald-500 transition-all" style="width: ${(masteredCount / stageTotal) * 100}%"></div>
                             <div class="h-full bg-amber-400 transition-all" style="width: ${(learningCount / stageTotal) * 100}%"></div>
-                        </div>
-                        <div class="flex justify-between items-center text-[10px] sm:text-[11px] font-medium text-slate-500">
-                            <span>${isComplete ? 'Mastered!' : `${masteredCount} words learned`}</span>
-                            <span class="hidden sm:inline text-indigo-700 font-bold group-hover:translate-x-0.5 transition">Challenge →</span>
                         </div>
                     </div>
                 `;
@@ -1848,7 +1871,7 @@
             ]);
 
             eightChoices.push({
-                text: 'わからない',
+                text: 'わからない（スキップして答えを見る）',
                 isCorrect: false,
                 isUnknown: true
             });
@@ -2050,7 +2073,7 @@
             const mobileNextHint = document.getElementById('mobile-next-hint');
             const mobileNextLabel = document.getElementById('mobile-next-label');
             if (mobileNextHint && mobileNextLabel) {
-                mobileNextLabel.textContent = isLast ? 'タップして結果を見る' : 'タップして次の問題へ';
+                mobileNextLabel.textContent = isLast ? 'ここをタップして結果を見る' : 'ここをタップして次の問題へ';
                 mobileNextHint.classList.remove('hidden');
             }
 
@@ -2074,31 +2097,41 @@
         }
 
         function quitQuiz() {
+            if (!pendingNavTab) pendingNavTab = 'stages';
             document.getElementById('quit-confirm-modal').classList.remove('hidden');
             if (window.lucide) lucide.createIcons();
         }
 
         function closeQuitConfirmModal() {
+            pendingNavTab = null;
             document.getElementById('quit-confirm-modal').classList.add('hidden');
         }
 
-        function confirmQuitQuiz() {
-            closeQuitConfirmModal();
-            stopTimer();
+        function discardQuizSession() {
             if (quizState.snapshotProgress) {
                 Object.keys(userProgress).forEach(id => {
                     if (quizState.snapshotProgress[id]) {
                         userProgress[id] = { ...quizState.snapshotProgress[id] };
                     }
                 });
+                quizState.snapshotProgress = null;
                 saveProgress();
             }
             if (quizState.snapshotHistory) {
                 Object.keys(dailyHistory).forEach(k => delete dailyHistory[k]);
                 Object.assign(dailyHistory, quizState.snapshotHistory);
+                quizState.snapshotHistory = null;
                 saveDailyHistory();
             }
-            switchTab('stages');
+        }
+
+        function confirmQuitQuiz() {
+            const targetTab = pendingNavTab || 'stages';
+            closeQuitConfirmModal();
+            stopTimer();
+            discardQuizSession();
+            document.getElementById('view-quiz').classList.add('hidden');
+            switchTab(targetTab);
             showToast('途中終了したため、今回の記録は破棄されました');
         }
 
@@ -2123,39 +2156,35 @@
 
             quizState.history.forEach(item => {
                 const { wordObj, isCorrect, newStatus, outcomeType } = item;
-                let badgeHtml = '';
+                let dotHtml = '';
 
                 if (newStatus.mastered) {
-                    badgeHtml = `<span class="px-2 py-0.5 rounded-md text-[11px] font-bold bg-emerald-100 text-emerald-800">
-                        ${outcomeType === 'promoted' ? '★ 新規Learned！' : 'Learned'}
-                    </span>`;
+                    dotHtml = `<span title="${outcomeType === 'promoted' ? '新規Learned' : 'Learned'}" class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0"></span>`;
                 } else if (newStatus.streak === 1) {
-                    badgeHtml = `<span class="px-2 py-0.5 rounded-md text-[11px] font-bold bg-amber-100 text-amber-800">Learning (1/2)</span>`;
+                    dotHtml = `<span title="Learning (1/2)" class="inline-block w-2.5 h-2.5 rounded-full bg-amber-400 shrink-0"></span>`;
                 } else {
-                    badgeHtml = `<span class="px-2 py-0.5 rounded-md text-[11px] font-bold ${
-                        outcomeType === 'demoted' ? 'bg-rose-100 text-rose-800' : 'bg-slate-100 text-slate-600'
-                    }">${outcomeType === 'demoted' ? '↓ Unlearnedへ降格' : 'Unlearned (0/2)'}</span>`;
+                    dotHtml = `<span title="${outcomeType === 'demoted' ? 'Unlearnedへ降格' : 'Unlearned (0/2)'}" class="inline-block w-2.5 h-2.5 rounded-full bg-slate-400 shrink-0"></span>`;
                 }
 
                 const row = document.createElement('div');
-                row.className = 'p-3 bg-white flex items-center justify-between gap-3';
+                row.className = 'p-2.5 sm:p-3 bg-white flex items-center justify-between gap-2 sm:gap-3';
                 const checked = isWordChecked(wordObj.id);
                 row.innerHTML = `
-                    <div class="flex items-center gap-2.5 min-w-0">
-                        <span class="w-6 h-6 rounded-full flex items-center justify-center shrink-0 text-xs font-black ${
+                    <div class="flex items-center gap-2 sm:gap-2.5 min-w-0 flex-1">
+                        <span class="w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center shrink-0 text-xs font-black ${
                             isCorrect ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'
                         }">
                             ${isCorrect ? '○' : '×'}
                         </span>
-                        <div class="min-w-0">
-                            <div class="font-bold text-sm text-slate-900 truncate">
-                                <span class="text-xs text-slate-400 font-mono mr-1">No.${wordObj.id}</span>${wordObj.word} <span class="text-xs font-normal text-slate-500">（${wordObj.reading}）</span>
+                        <div class="min-w-0 flex-1">
+                            <div class="font-bold text-xs sm:text-sm text-slate-900">
+                                <span class="text-[11px] sm:text-xs text-slate-400 font-mono mr-1">No.${wordObj.id}</span>${wordObj.word} <span class="text-[11px] sm:text-xs font-normal text-slate-500">（${wordObj.reading}）</span>
                             </div>
-                            <div class="text-xs text-slate-600 truncate">${wordObj.meaning}</div>
+                            <div class="text-xs text-slate-600 break-words leading-snug mt-0.5">${wordObj.meaning}</div>
                         </div>
                     </div>
                     <div class="flex items-center gap-2 shrink-0">
-                        ${badgeHtml}
+                        ${dotHtml}
                         <button onclick="toggleWordCheck(${wordObj.id}, event)" data-word-id="${wordObj.id}" title="Save切り替え" class="result-check-btn p-1.5 rounded-lg border border-stone-200 hover:bg-amber-50 transition focus:outline-none">
                             <i data-lucide="star" class="w-4 h-4 ${checked ? 'fill-amber-400 text-amber-500' : 'text-slate-300 hover:text-amber-400'}"></i>
                         </button>
@@ -2226,40 +2255,34 @@
             filtered.forEach(w => {
                 const prog = userProgress[w.id];
                 const checked = isWordChecked(w.id);
-                let statusBadge = '';
+                let statusDot = '';
 
                 if (prog.mastered) {
-                    statusBadge = `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">
-                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>Learned
-                    </span>`;
+                    statusDot = `<span title="Learned" class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500"></span>`;
                 } else if (prog.streak === 1) {
-                    statusBadge = `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800">
-                        <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>Learning (1/2)
-                    </span>`;
+                    statusDot = `<span title="Learning (1/2)" class="inline-block w-2.5 h-2.5 rounded-full bg-amber-400"></span>`;
                 } else {
-                    statusBadge = `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-600">
-                        <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>Unlearned (0/2)
-                    </span>`;
+                    statusDot = `<span title="Unlearned (0/2)" class="inline-block w-2.5 h-2.5 rounded-full bg-slate-400"></span>`;
                 }
 
                 const tr = document.createElement('tr');
                 tr.className = 'hover:bg-stone-50/80 transition';
                 tr.innerHTML = `
-                    <td class="py-3 px-2 text-center">
-                        <button onclick="toggleWordCheck(${w.id}, event)" title="Save切り替え" class="p-1.5 rounded-lg hover:bg-amber-50 transition focus:outline-none">
+                    <td class="py-2.5 sm:py-3 px-1.5 sm:px-2 text-center">
+                        <button onclick="toggleWordCheck(${w.id}, event)" title="Save切り替え" class="p-1 sm:p-1.5 rounded-lg hover:bg-amber-50 transition focus:outline-none">
                             <i data-lucide="star" class="w-4 h-4 ${checked ? 'fill-amber-400 text-amber-500' : 'text-slate-300 hover:text-amber-400'}"></i>
                         </button>
                     </td>
-                    <td class="py-3 px-4 font-mono text-xs text-slate-500 font-bold">
+                    <td class="py-2.5 sm:py-3 px-2 sm:px-4 font-mono text-xs text-slate-500 font-bold">
                         <div>${w.id}</div>
                         <div class="text-[10px] font-normal text-slate-400">${w.chapter}</div>
                     </td>
-                    <td class="py-3 px-4">
-                        <div class="font-serif font-extrabold text-base text-slate-900">${w.word}</div>
-                        <div class="text-xs text-indigo-700 font-medium">${w.reading}</div>
+                    <td class="py-2.5 sm:py-3 px-2 sm:px-4">
+                        <div class="font-serif font-extrabold text-sm sm:text-base text-slate-900">${w.word}</div>
+                        <div class="text-[11px] sm:text-xs text-indigo-700 font-medium">${w.reading}</div>
                     </td>
-                    <td class="py-3 px-4 font-bold text-slate-700">${w.meaning}</td>
-                    <td class="py-3 px-4 text-center">${statusBadge}</td>
+                    <td class="py-2.5 sm:py-3 px-2 sm:px-4 font-bold text-xs sm:text-sm text-slate-700 leading-snug">${w.meaning}</td>
+                    <td class="py-2.5 sm:py-3 px-1.5 sm:px-3 text-center">${statusDot}</td>
                 `;
                 tbody.appendChild(tr);
             });
@@ -2297,6 +2320,20 @@
                 }
             }
         }, true);
+
+        // タブを閉じる・リロード時の途中離脱警告＆データ破棄
+        window.addEventListener('beforeunload', (e) => {
+            if (isQuizInProgress()) {
+                e.preventDefault();
+                e.returnValue = '';
+            }
+        });
+
+        window.addEventListener('pagehide', () => {
+            if (isQuizInProgress()) {
+                discardQuizSession();
+            }
+        });
 
         // 起動
         window.addEventListener('DOMContentLoaded', initApp);
