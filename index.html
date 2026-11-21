@@ -15,6 +15,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=Shippori+Mincho:wght@600;800&display=swap" rel="stylesheet">
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- QRコード生成 & 画像解析ライブラリ -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -236,6 +239,11 @@
         }
         html.dark ::-webkit-scrollbar-thumb {
             background: #334155;
+        }
+        #backup-qr-container canvas,
+        #backup-qr-container img {
+            image-rendering: pixelated;
+            display: block;
         }
     </style>
 </head>
@@ -610,6 +618,7 @@
                         <button onclick="setDictFilter('learning')" id="filter-learning" class="dict-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 whitespace-nowrap">Learning</button>
                         <button onclick="setDictFilter('mastered')" id="filter-mastered" class="dict-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 whitespace-nowrap">Learned</button>
                     </div>
+                </div>
             </div>
 
             <!-- 単語リストテーブル -->
@@ -637,36 +646,57 @@
 
     <!-- データ引き継ぎ・バックアップモーダル -->
     <div id="backup-modal" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-md w-full p-5 sm:p-6 border border-stone-200 shadow-xl space-y-4 animate-pop">
+        <div class="bg-white rounded-2xl max-w-md w-full max-h-[90vh] overflow-y-auto p-5 sm:p-6 border border-stone-200 shadow-xl space-y-4 animate-pop">
             <div class="flex items-center justify-between">
                 <h3 class="font-bold text-base sm:text-lg text-slate-900 flex items-center gap-2">
-                    <i data-lucide="save" class="w-5 h-5 text-indigo-700"></i>
-                    <span>学習データの保存・引き継ぎ</span>
+                    <i data-lucide="qr-code" class="w-5 h-5 text-indigo-700"></i>
+                    <span>QRコードで保存・引き継ぎ</span>
                 </h3>
                 <button onclick="closeBackupModal()" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-stone-100">
                     <i data-lucide="x" class="w-5 h-5"></i>
                 </button>
             </div>
-            <p class="text-xs text-slate-600 leading-relaxed">
-                同じブラウザ内ではデータは保持されますが、別の端末やブラウザで開く際のデータ引き継ぎには保存コードをご利用ください。
-            </p>
-            <div class="space-y-2">
-                <div class="flex items-center justify-between">
-                    <label class="text-xs font-bold text-slate-700">復元用コード入力欄</label>
-                    <span id="cloud-sync-status" class="text-[11px] font-bold text-slate-400"></span>
+
+            <!-- QRコード表示エリア -->
+            <div class="rounded-2xl bg-stone-50 border border-stone-200 p-4 flex flex-col items-center text-center space-y-2.5">
+                <div class="p-3 rounded-xl shadow-xs border border-stone-200" style="background-color: #ffffff;">
+                    <div id="backup-qr-container" class="flex items-center justify-center"></div>
                 </div>
-                <textarea id="backup-code-box" rows="3" placeholder="引き継ぎ時はここに保存コードを貼り付けて「コードから復元」を押してください" class="w-full p-2.5 rounded-xl border border-stone-200 bg-stone-50 text-xs font-mono text-slate-700 focus:bg-white focus:border-indigo-500 outline-none"></textarea>
+                <p class="text-[11px] sm:text-xs text-slate-600 leading-relaxed">
+                    別のスマホの<span class="font-bold text-indigo-700">標準カメラで撮ってリンクを開く</span>だけで自動復元されます。<br>
+                    同じ端末内ではこの画面をスクショして下のボタンから読み込んでください。
+                </p>
+                <span id="cloud-sync-status" class="text-[11px] font-bold text-slate-400"></span>
             </div>
-            <div class="grid grid-cols-2 gap-2.5 pt-1">
-                <button onclick="copyBackupCode()" class="py-2.5 px-3 rounded-xl bg-indigo-950 hover:bg-indigo-900 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition">
-                    <i data-lucide="copy" class="w-4 h-4"></i>
-                    <span>保存コードをコピー</span>
-                </button>
-                <button onclick="restoreFromBackupCode()" class="py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition">
-                    <i data-lucide="upload" class="w-4 h-4"></i>
-                    <span>コードから復元</span>
+
+            <!-- 画像（スクショ）からQRコードを読み取るボタン -->
+            <div>
+                <input type="file" id="qr-file-input" accept="image/*" onchange="handleQrImageUpload(event)" class="hidden">
+                <button onclick="document.getElementById('qr-file-input').click()" class="w-full py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-sm transition">
+                    <i data-lucide="image" class="w-4 h-4"></i>
+                    <span>画像（スクショ）からQRコードを読み取る</span>
                 </button>
             </div>
+
+            <!-- 従来の保存コードでのコピー・復元 -->
+            <details class="pt-1 border-t border-stone-100">
+                <summary class="text-xs font-bold text-slate-500 hover:text-slate-800 cursor-pointer select-none py-1">
+                    テキストの保存コードでコピー・復元する
+                </summary>
+                <div class="space-y-2.5 pt-2">
+                    <textarea id="backup-code-box" rows="2" placeholder="引き継ぎ時はここに保存コードを貼り付けて「コードから復元」を押してください" class="w-full p-2.5 rounded-xl border border-stone-200 bg-stone-50 text-xs font-mono text-slate-700 focus:bg-white focus:border-indigo-500 outline-none"></textarea>
+                    <div class="grid grid-cols-2 gap-2.5">
+                        <button onclick="copyBackupCode()" class="py-2.5 px-3 rounded-xl bg-indigo-950 hover:bg-indigo-900 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition">
+                            <i data-lucide="copy" class="w-4 h-4"></i>
+                            <span>保存コードをコピー</span>
+                        </button>
+                        <button onclick="restoreFromBackupCode()" class="py-2.5 px-3 rounded-xl bg-slate-700 hover:bg-slate-800 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition">
+                            <i data-lucide="upload" class="w-4 h-4"></i>
+                            <span>コードから復元</span>
+                        </button>
+                    </div>
+                </div>
+            </details>
         </div>
     </div>
 
@@ -1248,6 +1278,7 @@
             loadCheckedWords();
             loadDailyHistory();
             loadTotalScoreCount();
+            checkUrlBackupRestore();
             renderDashboard();
             renderStageGrid();
             renderDictionary();
@@ -1480,6 +1511,7 @@
             const box = document.getElementById('backup-code-box');
             box.value = '';
             modal.classList.remove('hidden');
+            renderBackupQrCode();
             lucide.createIcons();
         }
 
@@ -1487,14 +1519,283 @@
             document.getElementById('backup-modal').classList.add('hidden');
         }
 
+        function toUrlSafeBase64(str) {
+            const b64 = btoa(unescape(encodeURIComponent(str)));
+            return b64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+        }
+
+        function fromUrlSafeBase64(b64url) {
+            let b64 = b64url.replace(/-/g, '+').replace(/_/g, '/');
+            while (b64.length % 4 !== 0) b64 += '=';
+            return decodeURIComponent(escape(atob(b64)));
+        }
+
         function generateBackupCodeString() {
-            const payload = { p: userProgress, c: checkedWords, s: totalCorrectScoreCount, h: dailyHistory };
-            try {
-                const jsonStr = JSON.stringify(payload);
-                return btoa(unescape(encodeURIComponent(jsonStr)));
-            } catch (e) {
-                return JSON.stringify(payload);
+            // 1. No.1〜315の習得状態を5語ずつ1バイト（base-243）に高密度圧縮（315語 → 63バイト）
+            const byteLen = Math.ceil(KOBUN_WORDS.length / 5);
+            const packedBytes = new Uint8Array(byteLen);
+            for (let b = 0; b < byteLen; b++) {
+                let val = 0;
+                for (let k = 0; k < 5; k++) {
+                    const idx = b * 5 + k;
+                    let trit = 0;
+                    if (idx < KOBUN_WORDS.length) {
+                        const prog = userProgress[KOBUN_WORDS[idx].id];
+                        if (prog && prog.mastered) trit = 2;
+                        else if (prog && prog.streak === 1) trit = 1;
+                    }
+                    val = val * 3 + trit;
+                }
+                packedBytes[b] = val;
             }
+            let binStr = '';
+            for (let i = 0; i < packedBytes.length; i++) {
+                binStr += String.fromCharCode(packedBytes[i]);
+            }
+            const packedStatusB64 = btoa(binStr).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+
+            // 2. ★Saveした単語：星がついている単語番号だけ記録
+            const savedIds = [];
+            for (let i = 0; i < KOBUN_WORDS.length; i++) {
+                const id = KOBUN_WORDS[i].id;
+                if (checkedWords[id]) savedIds.push(id);
+            }
+
+            // 3. 向上得点・日別グラフの記録
+            const compactPayload = {
+                v: 2,
+                p: packedStatusB64,
+                c: savedIds,
+                s: totalCorrectScoreCount,
+                h: dailyHistory
+            };
+
+            try {
+                return toUrlSafeBase64(JSON.stringify(compactPayload));
+            } catch (e) {
+                return JSON.stringify(compactPayload);
+            }
+        }
+
+        function buildBackupShareUrl() {
+            const code = generateBackupCodeString();
+            const baseUrl = window.location.href.split('#')[0].split('?')[0];
+            if (baseUrl.startsWith('http://') || baseUrl.startsWith('https://')) {
+                return `${baseUrl}#b=${code}`;
+            }
+            return code;
+        }
+
+        function renderBackupQrCode() {
+            const container = document.getElementById('backup-qr-container');
+            if (!container) return;
+            container.innerHTML = '';
+
+            const qrText = buildBackupShareUrl();
+            if (typeof QRCode !== 'undefined') {
+                new QRCode(container, {
+                    text: qrText,
+                    width: 220,
+                    height: 220,
+                    colorDark: '#0F172A',
+                    colorLight: '#FFFFFF',
+                    correctLevel: QRCode.CorrectLevel.L
+                });
+            } else {
+                container.textContent = 'QRコード生成ライブラリの読み込みに失敗しました';
+            }
+        }
+
+        function applyBackupRawString(rawInput) {
+            let trimmed = (rawInput || '').trim();
+            if (!trimmed) return false;
+
+            // URL形式（https://...#b=XXXX または ?b=XXXX）の場合はコード部分を抽出
+            const hashMatch = trimmed.match(/[#?&]b=([A-Za-z0-9\-_+/=]+)/);
+            if (hashMatch && hashMatch[1]) {
+                trimmed = hashMatch[1];
+            }
+
+            let decodedStr = trimmed;
+            if (!trimmed.startsWith('{')) {
+                decodedStr = fromUrlSafeBase64(trimmed);
+            }
+
+            const parsed = JSON.parse(decodedStr);
+            if (!parsed || typeof parsed !== 'object') return false;
+
+            // 習得状態の復元（v2: base-243圧縮 / v1: 315文字文字列 / 旧形式オブジェクト両対応）
+            if (parsed.v === 2 && typeof parsed.p === 'string') {
+                let b64 = parsed.p.replace(/-/g, '+').replace(/_/g, '/');
+                while (b64.length % 4 !== 0) b64 += '=';
+                const binStr = atob(b64);
+                for (let b = 0; b < binStr.length; b++) {
+                    let val = binStr.charCodeAt(b);
+                    const trits = [0, 0, 0, 0, 0];
+                    for (let k = 4; k >= 0; k--) {
+                        trits[k] = val % 3;
+                        val = Math.floor(val / 3);
+                    }
+                    for (let k = 0; k < 5; k++) {
+                        const idx = b * 5 + k;
+                        if (idx < KOBUN_WORDS.length) {
+                            const wId = KOBUN_WORDS[idx].id;
+                            if (trits[k] === 2) {
+                                userProgress[wId] = { streak: 2, mastered: true };
+                            } else if (trits[k] === 1) {
+                                userProgress[wId] = { streak: 1, mastered: false };
+                            } else {
+                                userProgress[wId] = { streak: 0, mastered: false };
+                            }
+                        }
+                    }
+                }
+            } else if (typeof parsed.p === 'string') {
+                KOBUN_WORDS.forEach((w, idx) => {
+                    const ch = parsed.p[idx] || '0';
+                    if (ch === '2') {
+                        userProgress[w.id] = { streak: 2, mastered: true };
+                    } else if (ch === '1') {
+                        userProgress[w.id] = { streak: 1, mastered: false };
+                    } else {
+                        userProgress[w.id] = { streak: 0, mastered: false };
+                    }
+                });
+            } else if (parsed.p && typeof parsed.p === 'object') {
+                KOBUN_WORDS.forEach(w => {
+                    if (parsed.p[w.id]) {
+                        userProgress[w.id] = {
+                            streak: Number(parsed.p[w.id].streak) || 0,
+                            mastered: Boolean(parsed.p[w.id].mastered)
+                        };
+                    }
+                });
+            }
+
+            // ★Save状態の復元（新形式：番号配列 / 旧形式：オブジェクト両対応）
+            Object.keys(checkedWords).forEach(k => delete checkedWords[k]);
+            if (Array.isArray(parsed.c)) {
+                parsed.c.forEach(id => {
+                    const numId = Number(id);
+                    if (numId >= 1 && numId <= KOBUN_WORDS.length) {
+                        checkedWords[numId] = true;
+                    }
+                });
+            } else if (parsed.c && typeof parsed.c === 'object') {
+                Object.keys(parsed.c).forEach(id => {
+                    if (parsed.c[id]) checkedWords[id] = true;
+                });
+            }
+
+            // 日別グラフの復元
+            if (parsed.h && typeof parsed.h === 'object') {
+                Object.keys(dailyHistory).forEach(k => delete dailyHistory[k]);
+                Object.keys(parsed.h).forEach(d => {
+                    const val = Number(parsed.h[d]);
+                    if (val > 0) dailyHistory[d] = val;
+                });
+                saveDailyHistory();
+            }
+
+            // 向上得点用正解数の復元
+            if (typeof parsed.s === 'number') {
+                totalCorrectScoreCount = Math.max(0, parsed.s);
+                saveTotalScoreCount();
+            }
+
+            saveProgress();
+            saveCheckedWords();
+            return true;
+        }
+
+        function checkUrlBackupRestore() {
+            try {
+                const hash = window.location.hash || '';
+                const search = window.location.search || '';
+                const target = hash.includes('b=') ? hash : (search.includes('b=') ? search : '');
+                if (!target) return;
+
+                if (applyBackupRawString(target)) {
+                    // URLからバックアップパラメータを消去してスッキリさせる
+                    if (window.history && window.history.replaceState) {
+                        const cleanUrl = window.location.href.split('#')[0].split('?')[0];
+                        window.history.replaceState(null, '', cleanUrl);
+                    }
+                    renderDashboard();
+                    renderStageGrid();
+                    renderDictionary();
+                    setTimeout(() => {
+                        showToast('QRコードから学習データを自動復元しました！');
+                    }, 300);
+                }
+            } catch (e) {
+                console.warn('URL backup restore failed:', e);
+            }
+        }
+
+        function decodeQrFromImage(img, maxDim) {
+            let w = img.width;
+            let h = img.height;
+            if (w > maxDim || h > maxDim) {
+                const scale = maxDim / Math.max(w, h);
+                w = Math.round(w * scale);
+                h = Math.round(h * scale);
+            }
+            const canvas = document.createElement('canvas');
+            canvas.width = w;
+            canvas.height = h;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, w, h);
+            const imageData = ctx.getImageData(0, 0, w, h);
+            return jsQR(imageData.data, imageData.width, imageData.height, {
+                inversionAttempts: 'attemptBoth'
+            });
+        }
+
+        function handleQrImageUpload(event) {
+            const file = event.target.files && event.target.files[0];
+            event.target.value = '';
+            if (!file) return;
+
+            if (typeof jsQR === 'undefined') {
+                showToast('QR読み取り機能の読み込みに失敗しました');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    try {
+                        let qrResult = decodeQrFromImage(img, 1200);
+                        if ((!qrResult || !qrResult.data) && Math.max(img.width, img.height) > 1200) {
+                            qrResult = decodeQrFromImage(img, 2400);
+                        }
+
+                        if (!qrResult || !qrResult.data) {
+                            showToast('画像からQRコードが見つかりませんでした');
+                            return;
+                        }
+
+                        if (applyBackupRawString(qrResult.data)) {
+                            renderDashboard();
+                            renderStageGrid();
+                            renderDictionary();
+                            closeBackupModal();
+                            showToast('QRコード画像から学習データを復元しました！');
+                        } else {
+                            showToast('QRコードのデータ形式が正しくありません');
+                        }
+                    } catch (err) {
+                        showToast('QRコードの読み取りに失敗しました');
+                    }
+                };
+                img.onerror = function() {
+                    showToast('画像の読み込みに失敗しました');
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
         }
 
         function copyBackupCode() {
@@ -1518,46 +1819,15 @@
                 return;
             }
             try {
-                let decodedStr = raw;
-                if (!raw.startsWith('{')) {
-                    decodedStr = decodeURIComponent(escape(atob(raw)));
+                if (applyBackupRawString(raw)) {
+                    renderDashboard();
+                    renderStageGrid();
+                    renderDictionary();
+                    closeBackupModal();
+                    showToast('学習データを復元しました！');
+                } else {
+                    showToast('コードの形式が正しくありません');
                 }
-                const parsed = JSON.parse(decodedStr);
-                if (parsed.p) {
-                    KOBUN_WORDS.forEach(w => {
-                        if (parsed.p[w.id]) {
-                            userProgress[w.id] = {
-                                streak: Number(parsed.p[w.id].streak) || 0,
-                                mastered: Boolean(parsed.p[w.id].mastered)
-                            };
-                        }
-                    });
-                }
-                if (parsed.c) {
-                    Object.keys(checkedWords).forEach(k => delete checkedWords[k]);
-                    Object.keys(parsed.c).forEach(id => {
-                        if (parsed.c[id]) checkedWords[id] = true;
-                    });
-                }
-                if (parsed.h && typeof parsed.h === 'object') {
-                    Object.keys(dailyHistory).forEach(k => delete dailyHistory[k]);
-                    Object.keys(parsed.h).forEach(d => {
-                        const val = Number(parsed.h[d]);
-                        if (val > 0) dailyHistory[d] = val;
-                    });
-                    saveDailyHistory();
-                }
-                if (typeof parsed.s === 'number') {
-                    totalCorrectScoreCount = Math.max(0, parsed.s);
-                    saveTotalScoreCount();
-                }
-                saveProgress();
-                saveCheckedWords();
-                renderDashboard();
-                renderStageGrid();
-                renderDictionary();
-                closeBackupModal();
-                showToast('学習データを復元しました！');
             } catch (e) {
                 showToast('コードの形式が正しくありません');
             }
@@ -2403,6 +2673,7 @@
         });
 
         // 起動
+        window.addEventListener('hashchange', checkUrlBackupRestore);
         window.addEventListener('DOMContentLoaded', initApp);
     </script>
 </body>
